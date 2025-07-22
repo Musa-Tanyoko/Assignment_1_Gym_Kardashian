@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "buildCommand": "pnpm build:staging",
   "installCommand": "pnpm install",
@@ -11,4 +12,19 @@
     "NODE_ENV": "staging",
     "NEXT_PUBLIC_ENVIRONMENT": "staging"
   }
+=======
+{
+  "buildCommand": "pnpm build:staging",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "functions": {
+    "apps/web/.next/server/**/*.js": {
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "NODE_ENV": "staging",
+    "NEXT_PUBLIC_ENVIRONMENT": "staging"
+  }
+>>>>>>> 5c09f258344849581786557d82863e5b3589e033
 } 

@@ -1,3 +1,8 @@
+<<<<<<< HEAD
 packages:
   - "apps/*"
+=======
+packages:
+  - "apps/*"
+>>>>>>> 5c09f258344849581786557d82863e5b3589e033
   - "packages/*" 
