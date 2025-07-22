@@ -1,0 +1,16 @@
+[build]
+  base = "."
+  command = "pnpm build:staging"
+  publish = "apps/web/.next"
+
+[build.environment]
+  NODE_ENV = "staging"
+  NEXT_PUBLIC_ENVIRONMENT = "staging"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[functions]
+  directory = "apps/web/.next/server" 

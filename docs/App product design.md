@@ -1,0 +1,6 @@
+App product design
+
+Create a fitness application that works as a game. You create digital pet(cat, dog, fish, bird) that requires resources to stay alive. The pet needs to eat, bathe, clothe, and have entertainment. The App user needs to complete exercise sessions and reach milestones in order to earn credits to pay for their pets resources.
+The pet will have various health bars like, hungry, hygiene, happiness levels which deplete at a certain rate every day. The user can replenish these bars by earning credits upon completing exercise sessions. The pet steadily grows in age and eventually can reproduce more pets which the user will have to care for too. So the exercises progress steadily in intensity as there are more pets for the user to care for.
+
+The app should take the users details, name , age, fitness goals, BMI, body fat index and use this info to tailor make an exercise regimen for the user. It should suggest how many sessions in a week to exercise and how long each session should be, there should be an in app calendar indicating days. How many sets, and reps. the actual exercise page should have workout descriptions and images accompanying them. There should be a timer, breaks in between reps and sets. Credits will be earned per exercise and duration of session.
