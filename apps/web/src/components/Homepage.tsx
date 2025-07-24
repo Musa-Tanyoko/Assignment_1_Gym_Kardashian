@@ -12,7 +12,11 @@ import {
   Timer
 } from 'lucide-react';
 
-const Homepage = ({ onNavigate }) => {
+interface HomepageProps {
+  onNavigate: (route: string) => void;
+}
+
+const Homepage: React.FC<HomepageProps> = ({ onNavigate }) => {
   return (
     <div className="min-h-screen">
       {/* Header */}
@@ -33,6 +37,12 @@ const Homepage = ({ onNavigate }) => {
                 className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
               >
                 Demo
+              </button>
+              <button
+                onClick={() => onNavigate('progressive-demo')}
+                className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                Progressive Demo
               </button>
               <button
                 onClick={() => onNavigate('auth')}

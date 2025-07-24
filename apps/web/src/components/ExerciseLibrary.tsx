@@ -141,7 +141,20 @@ const ExerciseLibrary = () => {
     }
   ];
 
-  const getDifficultyColor = (difficulty) => {
+
+  type Category =
+    | 'Upper Body'
+    | 'Lower Body'
+    | 'Core'
+    | 'Cardio'
+    | 'Full Body';
+
+  type Difficulty =
+    | 'Beginner'
+    | 'Intermediate'
+    | 'Advanced';
+
+  const getDifficultyColor = (difficulty: Difficulty | string): string => {
     switch (difficulty) {
       case 'Beginner': return 'bg-green-100 text-green-800';
       case 'Intermediate': return 'bg-yellow-100 text-yellow-800';

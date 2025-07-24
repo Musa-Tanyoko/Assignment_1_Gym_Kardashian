@@ -1,133 +1,200 @@
-import React, { useState, useEffect } from 'react';
-import PetCard from './PetCard';
+import { useState, useEffect } from 'react';
+import SocialiteCard from './PetCard';
 import WorkoutTimer from './WorkoutTimer';
 import Calendar from './Calendar';
 import ExerciseLibrary from './ExerciseLibrary';
 import { 
-  Plus, 
   Coins, 
   Trophy, 
   Calendar as CalendarIcon, 
   Play, 
   Target,
   Settings,
-  Home,
   Activity,
-  Heart
+  Heart,
+  TrendingUp,
+  Star
 } from 'lucide-react';
+import { useProgressiveDifficulty } from '../hooks/useProgressiveDifficulty';
+import { SocialiteStats, getCurrentFameLevel } from '../types/socialite';
 
-const Dashboard = ({ user, onNavigate }) => {
-  const [activeTab, setActiveTab] = useState('pets');
-  const [pets, setPets] = useState([
-    {
-      id: 1,
-      name: 'Buddy',
-      type: 'dog',
-      age: 15,
-      hunger: 85,
-      hygiene: 70,
-      happiness: 90,
-      level: 3
-    }
-  ]);
+interface DashboardProps {
+  user: {
+    credits?: number;
+    name?: string;
+    age?: number;
+    bmi?: number;
+    fitnessGoal?: string;
+    activityLevel?: string;
+  };
+  onNavigate: (route: string) => void;
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
+  const [activeTab, setActiveTab] = useState('socialite');
+  const [socialite, setSocialite] = useState<SocialiteStats>({
+    id: 1,
+    name: 'Your Socialite',
+    type: 'influencer',
+    age: 15,
+    hunger: 85,
+    hygiene: 70,
+    happiness: 90,
+    level: 3,
+    fame: 100,
+    experience: 0,
+    spa: 40,
+    glam: 50,
+    outfits: 30,
+    photoshoots: 20,
+    trips: 10,
+    posts: 60,
+    wellness: 50,
+    petcare: 70,
+    events: 30,
+    pr: 80,
+    totalWorkouts: 0,
+    totalCreditsEarned: 0,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  });
   const [credits, setCredits] = useState(user?.credits || 150);
   const [showWorkout, setShowWorkout] = useState(false);
 
-  const addPet = () => {
-    const petTypes = ['cat', 'dog', 'fish', 'bird'];
-    const newPet = {
-      id: Date.now(),
-      name: `Pet ${pets.length + 1}`,
-      type: petTypes[Math.floor(Math.random() * petTypes.length)],
-      age: 1,
-      hunger: 100,
-      hygiene: 100,
-      happiness: 100,
-      level: 1
-    };
-    setPets([...pets, newPet]);
-  };
-
-  const feedPet = (petId) => {
-    if (credits >= 10) {
-      setPets(pets.map(pet => 
-        pet.id === petId 
-          ? { ...pet, hunger: Math.min(100, pet.hunger + 30) }
-          : pet
-      ));
-      setCredits(credits - 10);
+  // Progressive difficulty system
+  const {
+    socialite: progressiveSocialite,
+    currentFameLevel,
+    nextFameLevel,
+    currentDifficulty,
+    updateSocialite,
+    completeWorkout: completeProgressiveWorkout,
+    generateWorkout,
+    canLevelUp,
+    getLevelProgress,
+    getAvailableDifficulties,
+    getStatusSummary
+  } = useProgressiveDifficulty({
+    initialSocialite: socialite,
+    onLevelUp: (newLevel) => {
+      console.log(`🎉 ${socialite.name} leveled up to ${newLevel.name}!`);
+      // You could show a notification here
+    },
+    onNeedsUpdate: (updatedNeeds) => {
+      // Update the socialite state when needs change
+      setSocialite(prev => ({ ...prev, ...updatedNeeds }));
     }
-  };
+  });
 
-  const cleanPet = (petId) => {
-    if (credits >= 15) {
-      setPets(pets.map(pet => 
-        pet.id === petId 
-          ? { ...pet, hygiene: Math.min(100, pet.hygiene + 40) }
-          : pet
-      ));
-      setCredits(credits - 15);
-    }
-  };
+  // Update local socialite state when progressive system updates it
+  useEffect(() => {
+    setSocialite(progressiveSocialite);
+  }, [progressiveSocialite]);
 
-  const playWithPet = (petId) => {
-    if (credits >= 5) {
-      setPets(pets.map(pet => 
-        pet.id === petId 
-          ? { ...pet, happiness: Math.min(100, pet.happiness + 25) }
-          : pet
-      ));
-      setCredits(credits - 5);
-    }
-  };
+  // Socialite needs actions
+  const spaDay = () => { if (credits >= 20) { updateSocialite({ spa: Math.min(100, socialite.spa + 30) }); setCredits((c: number) => c - 20); } };
+  const glamTeam = () => { if (credits >= 15) { updateSocialite({ glam: Math.min(100, socialite.glam + 25) }); setCredits((c: number) => c - 15); } };
+  const designerOutfit = () => { if (credits >= 25) { updateSocialite({ outfits: Math.min(100, socialite.outfits + 40) }); setCredits((c: number) => c - 25); } };
+  const photoshoot = () => { if (credits >= 10) { updateSocialite({ photoshoots: Math.min(100, socialite.photoshoots + 20), fame: socialite.fame + 10 }); setCredits((c: number) => c - 10); } };
+  const jetSetTrip = () => { if (credits >= 30) { updateSocialite({ trips: Math.min(100, socialite.trips + 50), fame: socialite.fame + 20 }); setCredits((c: number) => c - 30); } };
+  const socialPost = () => { if (credits >= 5) { updateSocialite({ posts: Math.min(100, socialite.posts + 10), fame: socialite.fame + 5 }); setCredits((c: number) => c - 5); } };
+  const wellnessRitual = () => { if (credits >= 10) { updateSocialite({ wellness: Math.min(100, socialite.wellness + 20) }); setCredits((c: number) => c - 10); } };
+  const petCare = () => { if (credits >= 8) { updateSocialite({ petcare: Math.min(100, socialite.petcare + 15) }); setCredits((c: number) => c - 8); } };
+  const eventRedCarpet = () => { if (credits >= 40) { updateSocialite({ events: Math.min(100, socialite.events + 60), fame: socialite.fame + 30 }); setCredits((c: number) => c - 40); } };
+  const prPublicist = () => { if (credits >= 12) { updateSocialite({ pr: Math.min(100, socialite.pr + 20) }); setCredits((c: number) => c - 12); } };
 
-  const completeWorkout = (earnedCredits) => {
+  const completeWorkout = (earnedCredits: number) => {
     setCredits(credits + earnedCredits);
     setShowWorkout(false);
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPets(currentPets => 
-        currentPets.map(pet => ({
-          ...pet,
-          hunger: Math.max(0, pet.hunger - 2),
-          hygiene: Math.max(0, pet.hygiene - 1),
-          happiness: Math.max(0, pet.happiness - 1.5),
-          age: pet.age + 0.1
-        }))
-      );
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
+  // Removed pets interval logic, no longer needed
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'pets':
+      case 'socialite':
         return (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">Your Pets</h2>
-              <button
-                onClick={addPet}
-                className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-blue-500 text-white rounded-lg hover:from-emerald-600 hover:to-blue-600 transition-all duration-300 flex items-center"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Adopt Pet
-              </button>
+            <h2 className="text-2xl font-bold text-gray-900">Your Socialite</h2>
+            <SocialiteCard
+              socialite={socialite}
+              credits={credits}
+              onFeed={() => {}}
+              onClean={() => {}}
+              onPlay={() => {}}
+            />
+            <div className="space-y-2 mt-6">
+              <div className="grid grid-cols-2 gap-2">
+                <button onClick={spaDay} disabled={credits < 20} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors">Spa Day <span className="ml-auto text-xs">20c</span></button>
+                <button onClick={glamTeam} disabled={credits < 15} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors">Glam Team <span className="ml-auto text-xs">15c</span></button>
+                <button onClick={designerOutfit} disabled={credits < 25} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors">Designer Outfit <span className="ml-auto text-xs">25c</span></button>
+                <button onClick={photoshoot} disabled={credits < 10} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors">Photoshoot <span className="ml-auto text-xs">10c</span></button>
+                <button onClick={jetSetTrip} disabled={credits < 30} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors">Jet-Set Trip <span className="ml-auto text-xs">30c</span></button>
+                <button onClick={socialPost} disabled={credits < 5} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors">Social Post <span className="ml-auto text-xs">5c</span></button>
+                <button onClick={wellnessRitual} disabled={credits < 10} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors">Wellness Ritual <span className="ml-auto text-xs">10c</span></button>
+                <button onClick={petCare} disabled={credits < 8} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors">Pet Care <span className="ml-auto text-xs">8c</span></button>
+                <button onClick={eventRedCarpet} disabled={credits < 40} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors">Red Carpet Event <span className="ml-auto text-xs">40c</span></button>
+                <button onClick={prPublicist} disabled={credits < 12} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors">PR & Publicist <span className="ml-auto text-xs">12c</span></button>
+              </div>
             </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {pets.map(pet => (
-                <PetCard
-                  key={pet.id}
-                  pet={pet}
-                  onFeed={() => feedPet(pet.id)}
-                  onClean={() => cleanPet(pet.id)}
-                  onPlay={() => playWithPet(pet.id)}
-                  credits={credits}
-                />
-              ))}
+            <div className="mt-6">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-pink-100 rounded-lg p-2 text-pink-700">Fame: {socialite.fame}</div>
+                <div className="bg-pink-100 rounded-lg p-2 text-pink-700">Level: {socialite.level}</div>
+              </div>
+              
+              {/* Progressive Difficulty Status */}
+              <div className="mt-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4">
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                  <TrendingUp className="w-4 h-4 mr-2 text-purple-600" />
+                  Progressive Difficulty Status
+                </h4>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Current Fame Level:</span>
+                    <span className="font-medium text-gray-900">{currentFameLevel.name}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Exercise Difficulty:</span>
+                    <span className="font-medium text-gray-900">{currentDifficulty.name}</span>
+                  </div>
+                  
+                  {nextFameLevel && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Next Level:</span>
+                        <span className="font-medium text-gray-900">{nextFameLevel.name}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
+                          style={{ width: `${getLevelProgress().percentage}%` }}
+                        />
+                      </div>
+                      <div className="text-xs text-gray-500 text-center">
+                        {Math.round(getLevelProgress().percentage)}% to next level
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-blue-50 rounded p-2">
+                      <div className="flex items-center">
+                        <Target className="w-3 h-3 text-blue-500 mr-1" />
+                        <span className="text-blue-700">Workouts: {socialite.totalWorkouts}</span>
+                      </div>
+                    </div>
+                    <div className="bg-green-50 rounded p-2">
+                      <div className="flex items-center">
+                        <Star className="w-3 h-3 text-green-500 mr-1" />
+                        <span className="text-green-700">XP: {socialite.experience}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -136,7 +203,7 @@ const Dashboard = ({ user, onNavigate }) => {
         return (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">Today's Workout</h2>
+              <h2 className="text-2xl font-bold text-gray-900">Progressive Workout</h2>
               <button
                 onClick={() => setShowWorkout(true)}
                 className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-blue-500 text-white rounded-lg hover:from-emerald-600 hover:to-blue-600 transition-all duration-300 flex items-center"
@@ -149,29 +216,35 @@ const Dashboard = ({ user, onNavigate }) => {
             {showWorkout ? (
               <WorkoutTimer
                 user={user}
-                onComplete={completeWorkout}
+                onComplete={(earnedCredits) => {
+                  // Generate a progressive workout and complete it
+                  const workout = generateWorkout();
+                  const actualCredits = completeProgressiveWorkout(workout);
+                  completeWorkout(actualCredits);
+                }}
                 onClose={() => setShowWorkout(false)}
+                progressiveWorkout={generateWorkout()}
               />
             ) : (
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Recommended Workout</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Progressive Workout</h3>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Duration:</span>
-                      <span className="font-medium">30 minutes</span>
+                      <span className="text-gray-600">Difficulty Level:</span>
+                      <span className="font-medium">{currentDifficulty.name}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Type:</span>
-                      <span className="font-medium">Full Body</span>
+                      <span className="text-gray-600">Intensity:</span>
+                      <span className="font-medium">{currentDifficulty.intensityMultiplier}x</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Difficulty:</span>
-                      <span className="font-medium capitalize">{user?.activityLevel || 'Beginner'}</span>
+                      <span className="text-gray-600">Fame Level:</span>
+                      <span className="font-medium">{currentFameLevel.name}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Credits:</span>
-                      <span className="font-medium text-emerald-600">50-80</span>
+                      <span className="font-medium text-emerald-600">{currentDifficulty.creditReward * currentFameLevel.creditMultiplier}</span>
                     </div>
                   </div>
                 </div>
@@ -325,7 +398,7 @@ const Dashboard = ({ user, onNavigate }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex space-x-8">
             {[
-              { id: 'pets', label: 'My Pets', icon: Heart },
+              { id: 'socialite', label: 'My Socialite', icon: Heart },
               { id: 'workout', label: 'Workout', icon: Activity },
               { id: 'exercises', label: 'Exercises', icon: Target },
               { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
@@ -338,7 +411,7 @@ const Dashboard = ({ user, onNavigate }) => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tab.id
-                      ? 'border-emerald-500 text-emerald-600'
+                      ? 'border-pink-500 text-pink-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >

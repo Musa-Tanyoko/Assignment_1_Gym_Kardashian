@@ -1,12 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Play, Pause, Heart, Coins, Trophy, Timer } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Play, Heart, Coins, Trophy, Timer, Sparkles, Camera, Plane, Rss, Smile, Dog, User } from 'lucide-react';
+import SocialiteCard from './PetCard';
 
-const DemoPage = ({ onNavigate }) => {
+interface DemoPageProps {
+  onNavigate: (route: string) => void;
+}
+
+const DemoPage: React.FC<DemoPageProps> = ({ onNavigate }) => {
   const [demoStep, setDemoStep] = useState(0);
-  const [petHealth, setPetHealth] = useState({
+  const [socialite, setSocialite] = useState({
+    name: 'Your Socialite',
+    type: 'influencer',
+    level: 1,
+    age: 12,
+    fame: 100,
     hunger: 45,
     hygiene: 30,
-    happiness: 60
+    happiness: 60,
+    spa: 40,
+    glam: 50,
+    outfits: 30,
+    photoshoots: 20,
+    trips: 10,
+    posts: 60,
+    wellness: 50,
+    petcare: 70,
+    events: 30,
+    pr: 80
   });
   const [credits, setCredits] = useState(75);
   const [isWorkingOut, setIsWorkingOut] = useState(false);
@@ -14,29 +34,29 @@ const DemoPage = ({ onNavigate }) => {
 
   const demoSteps = [
     {
-      title: "Meet Your Virtual Pet",
-      description: "This is Buddy, your virtual pet who depends on you for care. Notice his health bars are low - he needs your help!",
-      highlight: "pet"
+      title: "Meet Your Supermodel Socialite",
+      description: "This is your high-maintenance avatar! She lives a celebrity lifestyle funded by your fitness activity. Her needs are luxury: spa, glam, outfits, events, and more.",
+      highlight: "socialite"
     },
     {
-      title: "Low Health Means Trouble",
-      description: "When health bars are low, your pet becomes sad. You need credits to feed, clean, and play with your pet.",
-      highlight: "health"
+      title: "Neglect = Meltdowns",
+      description: "If you don't meet her needs, she gets moody, loses followers, and brand deals flop. Credits from workouts keep her happy and famous!",
+      highlight: "needs"
     },
     {
       title: "Earn Credits Through Exercise",
-      description: "Complete workouts to earn credits. Let's start a quick 30-second exercise session!",
+      description: "Work out to earn credits. Let's start a quick 30-second session to fund her next spa day!",
       highlight: "workout"
     },
     {
-      title: "Watch Your Pet Improve",
-      description: "Great job! Use your earned credits to care for Buddy and watch his happiness grow.",
-      highlight: "care"
+      title: "Level Up Her Lifestyle",
+      description: "Use credits to unlock luxury cities, new outfits, and fame. Keep her happy to unlock endorsements and collabs!",
+      highlight: "lifestyle"
     }
   ];
 
   useEffect(() => {
-    let interval;
+    let interval: ReturnType<typeof setInterval> | undefined;
     if (isWorkingOut && workoutTime > 0) {
       interval = setInterval(() => {
         setWorkoutTime(time => time - 1);
@@ -55,32 +75,19 @@ const DemoPage = ({ onNavigate }) => {
     setDemoStep(2);
   };
 
-  const feedPet = () => {
-    if (credits >= 10) {
-      setPetHealth(prev => ({ ...prev, hunger: Math.min(100, prev.hunger + 30) }));
-      setCredits(credits - 10);
-    }
-  };
+  // Lifestyle needs actions
+  const spaDay = () => { if (credits >= 20) { setSocialite(s => ({ ...s, spa: Math.min(100, s.spa + 30) })); setCredits((c: number) => c - 20); } };
+  const glamTeam = () => { if (credits >= 15) { setSocialite(s => ({ ...s, glam: Math.min(100, s.glam + 25) })); setCredits((c: number) => c - 15); } };
+  const designerOutfit = () => { if (credits >= 25) { setSocialite(s => ({ ...s, outfits: Math.min(100, s.outfits + 40) })); setCredits((c: number) => c - 25); } };
+  const photoshoot = () => { if (credits >= 10) { setSocialite(s => ({ ...s, photoshoots: Math.min(100, s.photoshoots + 20), fame: s.fame + 10 })); setCredits((c: number) => c - 10); } };
+  const jetSetTrip = () => { if (credits >= 30) { setSocialite(s => ({ ...s, trips: Math.min(100, s.trips + 50), fame: s.fame + 20 })); setCredits((c: number) => c - 30); } };
+  const socialPost = () => { if (credits >= 5) { setSocialite(s => ({ ...s, posts: Math.min(100, s.posts + 10), fame: s.fame + 5 })); setCredits((c: number) => c - 5); } };
+  const wellnessRitual = () => { if (credits >= 10) { setSocialite(s => ({ ...s, wellness: Math.min(100, s.wellness + 20) })); setCredits((c: number) => c - 10); } };
+  const petCare = () => { if (credits >= 8) { setSocialite(s => ({ ...s, petcare: Math.min(100, s.petcare + 15) })); setCredits((c: number) => c - 8); } };
+  const eventRedCarpet = () => { if (credits >= 40) { setSocialite(s => ({ ...s, events: Math.min(100, s.events + 60), fame: s.fame + 30 })); setCredits((c: number) => c - 40); } };
+  const prPublicist = () => { if (credits >= 12) { setSocialite(s => ({ ...s, pr: Math.min(100, s.pr + 20) })); setCredits((c: number) => c - 12); } };
 
-  const cleanPet = () => {
-    if (credits >= 15) {
-      setPetHealth(prev => ({ ...prev, hygiene: Math.min(100, prev.hygiene + 40) }));
-      setCredits(credits - 15);
-    }
-  };
-
-  const playWithPet = () => {
-    if (credits >= 5) {
-      setPetHealth(prev => ({ ...prev, happiness: Math.min(100, prev.happiness + 25) }));
-      setCredits(credits - 5);
-    }
-  };
-
-  const getHealthColor = (value) => {
-    if (value > 70) return 'bg-green-500';
-    if (value > 40) return 'bg-yellow-500';
-    return 'bg-red-500';
-  };
+  // Removed unused getNeedColor function
 
   const currentStep = demoSteps[demoStep];
 
@@ -146,97 +153,38 @@ const DemoPage = ({ onNavigate }) => {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Pet Card */}
+          {/* Socialite Card */}
           <div className={`bg-white rounded-xl shadow-sm border-2 p-6 transition-all duration-300 ${
-            currentStep.highlight === 'pet' || currentStep.highlight === 'health' || currentStep.highlight === 'care'
-              ? 'border-emerald-300 shadow-lg' 
+            currentStep.highlight === 'socialite' || currentStep.highlight === 'needs' || currentStep.highlight === 'lifestyle'
+              ? 'border-pink-300 shadow-lg' 
               : 'border-gray-200'
           }`}>
-            <div className="text-center mb-6">
-              <div className="text-6xl mb-3">🐶</div>
-              <h3 className="text-xl font-bold text-gray-900">Buddy</h3>
-              <p className="text-sm text-gray-500">Level 2 Dog • Age 12 days</p>
-            </div>
-
-            {/* Health Bars */}
-            <div className="space-y-4 mb-6">
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-700">Hunger</span>
-                  <span className="text-sm font-semibold text-orange-600">
-                    {Math.round(petHealth.hunger)}%
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full transition-all duration-500 ${getHealthColor(petHealth.hunger)}`}
-                    style={{ width: `${petHealth.hunger}%` }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-700">Hygiene</span>
-                  <span className="text-sm font-semibold text-blue-600">
-                    {Math.round(petHealth.hygiene)}%
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full transition-all duration-500 ${getHealthColor(petHealth.hygiene)}`}
-                    style={{ width: `${petHealth.hygiene}%` }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-700">Happiness</span>
-                  <span className="text-sm font-semibold text-purple-600">
-                    {Math.round(petHealth.happiness)}%
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full transition-all duration-500 ${getHealthColor(petHealth.happiness)}`}
-                    style={{ width: `${petHealth.happiness}%` }}
-                  />
-                </div>
+            <SocialiteCard
+              socialite={socialite}
+              credits={credits}
+              onFeed={() => {}}
+              onClean={() => {}}
+              onPlay={() => {}}
+            />
+            <div className="space-y-2 mt-6">
+              <div className="grid grid-cols-2 gap-2">
+                <button onClick={spaDay} disabled={credits < 20} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors"><Sparkles className="w-5 h-5 mr-1" /> Spa Day <span className="ml-auto text-xs">20c</span></button>
+                <button onClick={glamTeam} disabled={credits < 15} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors"><Smile className="w-5 h-5 mr-1" /> Glam Team <span className="ml-auto text-xs">15c</span></button>
+                <button onClick={designerOutfit} disabled={credits < 25} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors"><Rss className="w-5 h-5 mr-1" /> Designer Outfit <span className="ml-auto text-xs">25c</span></button>
+                <button onClick={photoshoot} disabled={credits < 10} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors"><Camera className="w-5 h-5 mr-1" /> Photoshoot <span className="ml-auto text-xs">10c</span></button>
+                <button onClick={jetSetTrip} disabled={credits < 30} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors"><Plane className="w-5 h-5 mr-1" /> Jet-Set Trip <span className="ml-auto text-xs">30c</span></button>
+                <button onClick={socialPost} disabled={credits < 5} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors"><User className="w-5 h-5 mr-1" /> Social Post <span className="ml-auto text-xs">5c</span></button>
+                <button onClick={wellnessRitual} disabled={credits < 10} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors"><Sparkles className="w-5 h-5 mr-1" /> Wellness Ritual <span className="ml-auto text-xs">10c</span></button>
+                <button onClick={petCare} disabled={credits < 8} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors"><Dog className="w-5 h-5 mr-1" /> Pet Care <span className="ml-auto text-xs">8c</span></button>
+                <button onClick={eventRedCarpet} disabled={credits < 40} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors"><Sparkles className="w-5 h-5 mr-1" /> Red Carpet Event <span className="ml-auto text-xs">40c</span></button>
+                <button onClick={prPublicist} disabled={credits < 12} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors"><Sparkles className="w-5 h-5 mr-1" /> PR & Publicist <span className="ml-auto text-xs">12c</span></button>
               </div>
             </div>
-
-            {/* Care Buttons */}
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                onClick={feedPet}
-                disabled={credits < 10}
-                className="flex flex-col items-center p-3 bg-orange-50 hover:bg-orange-100 disabled:bg-gray-50 disabled:text-gray-400 text-orange-700 rounded-lg transition-colors"
-              >
-                <span className="text-lg mb-1">🍖</span>
-                <span className="text-xs font-medium">Feed</span>
-                <span className="text-xs text-gray-500">10c</span>
-              </button>
-
-              <button
-                onClick={cleanPet}
-                disabled={credits < 15}
-                className="flex flex-col items-center p-3 bg-blue-50 hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 text-blue-700 rounded-lg transition-colors"
-              >
-                <span className="text-lg mb-1">🛁</span>
-                <span className="text-xs font-medium">Clean</span>
-                <span className="text-xs text-gray-500">15c</span>
-              </button>
-
-              <button
-                onClick={playWithPet}
-                disabled={credits < 5}
-                className="flex flex-col items-center p-3 bg-purple-50 hover:bg-purple-100 disabled:bg-gray-50 disabled:text-gray-400 text-purple-700 rounded-lg transition-colors"
-              >
-                <span className="text-lg mb-1">🎾</span>
-                <span className="text-xs font-medium">Play</span>
-                <span className="text-xs text-gray-500">5c</span>
-              </button>
+            <div className="mt-6">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-pink-100 rounded-lg p-2 text-pink-700">Fame: {socialite.fame}</div>
+                <div className="bg-pink-100 rounded-lg p-2 text-pink-700">Level: {socialite.level}</div>
+              </div>
             </div>
           </div>
 

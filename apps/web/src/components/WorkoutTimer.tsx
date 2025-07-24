@@ -1,50 +1,76 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Pause, SkipForward, X, Trophy } from 'lucide-react';
+import { Play, Pause, SkipForward, X, Trophy, Target, TrendingUp } from 'lucide-react';
+import { ProgressiveWorkout, ExerciseDifficulty } from '../types/socialite';
 
-const WorkoutTimer = ({ user, onComplete, onClose }) => {
+interface WorkoutTimerProps {
+  user: any;
+  onComplete: (credits: number) => void;
+  onClose: () => void;
+  progressiveWorkout?: ProgressiveWorkout;
+}
+
+const WorkoutTimer: React.FC<WorkoutTimerProps> = ({ user, onComplete, onClose, progressiveWorkout }) => {
   const [currentExercise, setCurrentExercise] = useState(0);
   const [timeLeft, setTimeLeft] = useState(45);
   const [isActive, setIsActive] = useState(false);
   const [isResting, setIsResting] = useState(false);
   const [completedExercises, setCompletedExercises] = useState(0);
+  const [currentSet, setCurrentSet] = useState(1);
 
-  const exercises = [
+  // Use progressive workout if provided, otherwise fall back to default
+  const exercises = progressiveWorkout?.exercises || [
     {
+      level: 1,
       name: 'Push-ups',
       description: 'Keep your body straight, lower chest to ground, push back up',
-      sets: 3,
-      reps: 12,
-      duration: 45,
+      baseSets: 3,
+      baseReps: 12,
+      baseDuration: 45,
+      intensityMultiplier: 1.0,
+      creditReward: 10,
+      requirements: { minFame: 0, minLevel: 1 },
       image: '🏋️‍♀️'
     },
     {
+      level: 1,
       name: 'Squats',
       description: 'Feet shoulder-width apart, lower hips back and down, stand up',
-      sets: 3,
-      reps: 15,
-      duration: 50,
+      baseSets: 3,
+      baseReps: 15,
+      baseDuration: 50,
+      intensityMultiplier: 1.0,
+      creditReward: 10,
+      requirements: { minFame: 0, minLevel: 1 },
       image: '🍑'
     },
     {
+      level: 1,
       name: 'Plank',
       description: 'Hold your body straight in push-up position',
-      sets: 3,
-      reps: '30s',
-      duration: 30,
+      baseSets: 3,
+      baseReps: '30s',
+      baseDuration: 30,
+      intensityMultiplier: 1.0,
+      creditReward: 10,
+      requirements: { minFame: 0, minLevel: 1 },
       image: '⚖️'
     },
     {
+      level: 1,
       name: 'Burpees',
       description: 'Squat, jump back to plank, push-up, jump forward, jump up',
-      sets: 2,
-      reps: 8,
-      duration: 60,
+      baseSets: 2,
+      baseReps: 8,
+      baseDuration: 60,
+      intensityMultiplier: 1.0,
+      creditReward: 10,
+      requirements: { minFame: 0, minLevel: 1 },
       image: '🔥'
     }
   ];
 
   useEffect(() => {
-    let interval = null;
+    let interval: NodeJS.Timeout | null = null;
     if (isActive && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft(timeLeft => timeLeft - 1);
@@ -52,12 +78,14 @@ const WorkoutTimer = ({ user, onComplete, onClose }) => {
     } else if (timeLeft === 0) {
       if (isResting) {
         setIsResting(false);
-        setTimeLeft(exercises[currentExercise]?.duration || 45);
+        setTimeLeft(exercises[currentExercise]?.baseDuration || 45);
       } else {
         handleNextExercise();
       }
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [isActive, timeLeft, isResting, currentExercise]);
 
   const handleNextExercise = () => {
@@ -84,7 +112,7 @@ const WorkoutTimer = ({ user, onComplete, onClose }) => {
     handleNextExercise();
   };
 
-  const formatTime = (seconds) => {
+  const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
@@ -128,14 +156,14 @@ const WorkoutTimer = ({ user, onComplete, onClose }) => {
           </div>
         ) : currentEx ? (
           <div className="text-center mb-8">
-            <div className="text-6xl mb-4">{currentEx.image}</div>
+            <div className="text-6xl mb-4">{(currentEx as any).image || '🏋️‍♀️'}</div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">{currentEx.name}</h3>
             <p className="text-gray-600 mb-4">{currentEx.description}</p>
             <div className="bg-emerald-50 rounded-lg p-3">
               <div className="flex items-center justify-center space-x-2">
-                <span className="text-2xl">{currentEx.image}</span>
+                <span className="text-2xl">{(currentEx as any).image || '🏋️‍♀️'}</span>
                 <p className="text-emerald-800 font-medium">
-                  {currentEx.sets} sets × {currentEx.reps} reps
+                  {currentEx.baseSets} sets × {currentEx.baseReps} reps
                 </p>
               </div>
             </div>
@@ -190,11 +218,11 @@ const WorkoutTimer = ({ user, onComplete, onClose }) => {
                   : 'bg-white border border-gray-200'
               }`}
             >
-              <span className="text-2xl mr-3">{exercise.image}</span>
+              <span className="text-2xl mr-3">{(exercise as any).image || '🏋️‍♀️'}</span>
               <div className="flex-1">
                 <p className="font-medium">{exercise.name}</p>
                 <p className="text-sm text-gray-500">
-                  {exercise.sets} sets × {exercise.reps}
+                  {exercise.baseSets} sets × {exercise.baseReps}
                 </p>
               </div>
               {index < currentExercise && (

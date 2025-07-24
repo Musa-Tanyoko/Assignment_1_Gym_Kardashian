@@ -10,7 +10,7 @@ lint-staged on pre-commit.
 • 1.4 Environment Setup: Configure environment variables using T3 Env for typesafe validation , and set up the local development environment to use Firebase emulators.
 Milestone 2: Core Data Models and User Flow
 This milestone is about implementing the fundamental data structures and the user's initial interaction with the app.
-• 2.1 User Data: Implement the User data model in Firestore, including fields like uid, first name, last name, email, role, age, weight, and fitness goal. The data will be used to tailor a workout regimen for the user.
+• 2.1 User Data: Implement the User data model in Firestore, including fields like uid, first name, last name, email, role, age, weight, and fitness goal. The data will be used to tailor a workout regimen for the user.git remote add origin https://github.com/your-username/your-repo-name.git
 • 2.2 Authentication: Set up user authentication using Firebase Auth.
 • 2.3 Pet Creation: Create the functionality for a user to create a digital pet, such as a cat, dog, fish, or bird.
 • 2.4 Pet Health System: Implement the data model and logic for the pet's health bars (hungry, hygiene, happiness) which deplete daily.
@@ -23,7 +23,7 @@ This milestone links the fitness aspect of the app to the pet's well-being.
 user and other procedures to handle the data fetching and mutation between the client and the backend services.
 Milestone 4: Advanced Features and Polish
 This milestone focuses on adding more complex features and improving the user experience.
-• 4.1 Progressive Difficulty: Implement the logic for the pet to grow in age and eventually reproduce, which in turn increases the number of pets the user must care for , and causes exercises to progress steadily in intensity.
+• 4.1 Progressive Difficulty: Implement the logic for the socialite to grow in fame and eventually it's demands increase, which in turn increases the depletion in the needs bars, and causes exercises to progress steadily in intensity.
 • 4.2 In-App Exercise Interface: Design and build the in-app exercise pages , including workout descriptions and images. The page should include a timer and breaks between sets and reps.
 • 4.3 Visual Testing: Use Storybook to develop and test UI components in isolation , including visual and interaction testing with
 @storybook/testing-library.
