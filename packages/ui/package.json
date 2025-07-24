@@ -12,7 +12,8 @@
   ],
   "scripts": {
     "build": "tsup src/index.tsx --format esm,cjs --dts --external react",
-    "dev": "tsup src/index.tsx --format esm,cjs --watch --dts --external react",
+    "dev": "tsup src/index.tsx --format esm,cjs --watch --external react --no-minify",
+    "dev:fast": "tsup src/index.tsx --format esm,cjs --watch --external react --no-minify --no-dts",
     "lint": "eslint . --max-warnings 0",
     "type-check": "tsc --noEmit"
   },

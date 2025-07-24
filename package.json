@@ -7,6 +7,10 @@
     "build": "turbo run build",
     "build:staging": "NODE_ENV=staging NEXT_PUBLIC_ENVIRONMENT=staging turbo run build",
     "dev": "turbo run dev",
+    "dev:fast": "turbo run dev --filter=@fitness-app/web",
+    "dev:vite": "turbo run dev --filter=@fitness-app/web",
+    "dev:ui": "turbo run dev --filter=@fitness-app/ui",
+    "predev": "turbo run build --filter=@fitness-app/ui",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "type-check": "turbo run type-check",
@@ -18,10 +22,17 @@
     "start:staging": "NODE_ENV=staging NEXT_PUBLIC_ENVIRONMENT=staging turbo run start"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "@babel/preset-env": "^7.28.0",
     "@types/node": "^20.10.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "babel-loader": "^10.0.0",
+    "null-loader": "^4.0.1",
     "prettier": "^3.1.0",
     "turbo": "^1.11.0",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "vite": "^7.0.5",
+    "vitest": "^3.2.4"
   },
   "packageManager": "pnpm@8.15.0",
   "engines": {
@@ -30,6 +41,8 @@
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.11",
-    "firebase": "^10.7.0"
+    "firebase": "9.23.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   }
 }

@@ -3,7 +3,7 @@ import { forwardRef } from "react";
 import { jsx } from "react/jsx-runtime";
 var Button = forwardRef(
   ({ children, className = "", onClick, type = "button", variant = "primary" }, ref) => {
-    const baseClasses = "px-4 py-2 rounded-md font-medium transition-colors";
+    const baseClasses = "px-4 py-2 rounded-md font-medium transition-colors cursor-pointer";
     const variantClasses = {
       primary: "bg-blue-600 text-white hover:bg-blue-700",
       secondary: "bg-gray-600 text-white hover:bg-gray-700",
