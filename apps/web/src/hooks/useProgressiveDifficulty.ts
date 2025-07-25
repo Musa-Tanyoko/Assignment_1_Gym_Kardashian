@@ -9,8 +9,6 @@ import {
   getExerciseDifficulty,
   calculateProgressiveWorkout,
   calculateNeedsDepletion,
-  checkLevelUp,
-  FAME_LEVELS,
   EXERCISE_DIFFICULTIES
 } from '../types/socialite';
 

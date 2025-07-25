@@ -1,39 +1,21 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useTRPC } from '../components/TRPCProvider';
-import { SocialiteStats } from '../types/socialite';
+import { trpc } from '../lib/trpc/client';
 
-export const useGetSocialite = (userId: string) => {
-  const trpc = useTRPC();
-  
-  return useQuery({
-    queryKey: ['socialite', userId],
-    queryFn: () => trpc.socialite.getByUserId(userId),
-    enabled: !!userId,
-  });
+export const useGetSocialiteByUserId = (userId: string) => {
+  const trpcClient = trpc.socialite.getByUserId.useQuery({ userId });
+  return trpcClient;
 };
 
 export const useCreateSocialite = () => {
-  const trpc = useTRPC();
-  
-  return useMutation({
-    mutationFn: (input: Omit<SocialiteStats, 'id' | 'createdAt' | 'updatedAt'> & { userId: string }) => 
-      trpc.socialite.create(input),
-  });
+  const trpcClient = trpc.socialite.create.useMutation();
+  return trpcClient;
 };
 
 export const useUpdateSocialite = () => {
-  const trpc = useTRPC();
-  
-  return useMutation({
-    mutationFn: (input: { id: string; updates: Partial<SocialiteStats> }) => 
-      trpc.socialite.update(input),
-  });
+  const trpcClient = trpc.socialite.update.useMutation();
+  return trpcClient;
 };
 
 export const useDeleteSocialite = () => {
-  const trpc = useTRPC();
-  
-  return useMutation({
-    mutationFn: (id: string) => trpc.socialite.delete(id),
-  });
+  const trpcClient = trpc.socialite.delete.useMutation();
+  return trpcClient;
 }; 

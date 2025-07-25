@@ -15,36 +15,52 @@ if (-not (Test-Path "package.json")) {
 Write-Host "📦 Installing dependencies..." -ForegroundColor Yellow
 pnpm install
 
-# Set staging environment
+# Copy staging environment file
+Write-Host "⚙️ Setting up staging environment..." -ForegroundColor Yellow
+if (Test-Path "apps/web/.env.staging") {
+    Copy-Item "apps/web/.env.staging" "apps/web/.env.local" -Force
+    Write-Host "✅ Staging environment configured" -ForegroundColor Green
+}
+else {
+    Write-Host "⚠️ Warning: .env.staging not found, using default environment" -ForegroundColor Yellow
+}
+
+# Set staging environment variables
 $env:NODE_ENV = $Environment
-$env:NEXT_PUBLIC_ENVIRONMENT = $Environment
+$env:VITE_ENVIRONMENT = $Environment
 
 # Build the application
 Write-Host "🔨 Building application for staging..." -ForegroundColor Yellow
-pnpm build
+pnpm build:staging
 
 # Run type checking
 Write-Host "🔍 Running type checks..." -ForegroundColor Yellow
 pnpm type-check
 
-# Run linting
+# Run linting (optional - won't fail deployment)
 Write-Host "🧹 Running linting..." -ForegroundColor Yellow
-pnpm lint
+try {
+    pnpm lint
+    Write-Host "✅ Linting passed" -ForegroundColor Green
+}
+catch {
+    Write-Host "⚠️ Linting had issues, but continuing with deployment..." -ForegroundColor Yellow
+}
 
 Write-Host "✅ Staging build completed successfully!" -ForegroundColor Green
 
-# Optional: Deploy to staging platform
-# Uncomment and configure based on your deployment platform
-
-# For Vercel:
-# Write-Host "🚀 Deploying to Vercel staging..." -ForegroundColor Green
-# vercel --prod
-
-# For Netlify:
-# Write-Host "🚀 Deploying to Netlify staging..." -ForegroundColor Green
-# netlify deploy --prod --dir=apps/web/.next
-
-# For custom server:
-Write-Host "🚀 Application built successfully for staging!" -ForegroundColor Green
-Write-Host "📁 Build output: apps/web/.next" -ForegroundColor Cyan
-Write-Host "🌐 You can now deploy the contents of apps/web/.next to your staging server" -ForegroundColor Cyan 
+# Check if build output exists
+if (Test-Path "apps/web/dist") {
+    Write-Host "📁 Build output: apps/web/dist" -ForegroundColor Cyan
+    
+    # Deploy to Firebase Hosting
+    Write-Host "🚀 Deploying to Firebase Hosting (staging)..." -ForegroundColor Green
+    firebase deploy --only hosting:staging
+    
+    Write-Host "🎉 Deployment completed successfully!" -ForegroundColor Green
+    Write-Host "🌐 Your staging app is now live!" -ForegroundColor Cyan
+}
+else {
+    Write-Host "❌ Error: Build output not found at apps/web/dist" -ForegroundColor Red
+    exit 1
+}

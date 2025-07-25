@@ -21,14 +21,18 @@ const config: StorybookConfig = {
   },
   viteFinal: async (config) => {
     // Add Tailwind CSS support
+    // Import plugins at the top of the file to avoid require()
+    // (see imports below)
     config.css = {
       postcss: {
         plugins: [
-          require('tailwindcss'),
-          require('autoprefixer'),
+          tailwindcss,
+          autoprefixer,
         ],
       },
     };
+import tailwindcss from 'tailwindcss';
+import autoprefixer from 'autoprefixer';
     return config;
   },
 };

@@ -1,12 +1,11 @@
-<<<<<<< HEAD
 [build]
   base = "."
-  command = "pnpm build:staging"
-  publish = "apps/web/.next"
+  command = "cd apps/web && pnpm build"
+  publish = "apps/web/dist"
 
 [build.environment]
   NODE_ENV = "staging"
-  NEXT_PUBLIC_ENVIRONMENT = "staging"
+  VITE_ENVIRONMENT = "staging"
 
 [[redirects]]
   from = "/*"
@@ -14,21 +13,4 @@
   status = 200
 
 [functions]
-=======
-[build]
-  base = "."
-  command = "pnpm build:staging"
-  publish = "apps/web/.next"
-
-[build.environment]
-  NODE_ENV = "staging"
-  NEXT_PUBLIC_ENVIRONMENT = "staging"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
-[functions]
->>>>>>> 5c09f258344849581786557d82863e5b3589e033
-  directory = "apps/web/.next/server" 
+  directory = "functions" 

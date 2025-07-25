@@ -6,6 +6,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { userRouter } from './userRouter';
 import { petRouter } from './petRouter';
 import { workoutRouter } from './workoutRouter';
+import { socialiteRouter } from './socialiteRouter';
 
 // Create tRPC context
 export const createContext = async (req: any) => {
@@ -76,6 +77,7 @@ export const appRouter = router({
   user: userRouter,
   pet: petRouter,
   workout: workoutRouter,
+  socialite: socialiteRouter,
 });
 
 export type AppRouter = typeof appRouter;

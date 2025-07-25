@@ -1,65 +1,31 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useTRPC } from '../components/TRPCProvider';
+import { trpc } from '../lib/trpc/client';
 
-export const useGetWorkouts = (userId: string) => {
-  const trpc = useTRPC();
-  
-  return useQuery({
-    queryKey: ['workouts', userId],
-    queryFn: () => trpc.workout.getByUserId(userId),
-    enabled: !!userId,
-  });
+export const useGetWorkoutById = (id: string) => {
+  const trpcClient = trpc.workout.getById.useQuery({ id });
+  return trpcClient;
+};
+
+export const useGetWorkoutsByUserId = (userId: string) => {
+  const trpcClient = trpc.workout.getByUserId.useQuery({ userId });
+  return trpcClient;
 };
 
 export const useCreateWorkout = () => {
-  const trpc = useTRPC();
-  
-  return useMutation({
-    mutationFn: (input: {
-      userId: string;
-      exercises: Array<{
-        name: string;
-        sets: number;
-        reps: number | string;
-        duration: number;
-        completed?: boolean;
-      }>;
-      totalDuration: number;
-      difficulty: number;
-      creditReward: number;
-      fameReward: number;
-      experienceReward: number;
-      completed?: boolean;
-    }) => trpc.workout.create(input),
-  });
+  const trpcClient = trpc.workout.create.useMutation();
+  return trpcClient;
 };
 
 export const useUpdateWorkout = () => {
-  const trpc = useTRPC();
-  
-  return useMutation({
-    mutationFn: (input: { id: string; updates: any }) => 
-      trpc.workout.update(input),
-  });
+  const trpcClient = trpc.workout.update.useMutation();
+  return trpcClient;
 };
 
 export const useCompleteWorkout = () => {
-  const trpc = useTRPC();
-  
-  return useMutation({
-    mutationFn: (input: {
-      id: string;
-      earnedCredits: number;
-      earnedFame: number;
-      earnedExperience: number;
-    }) => trpc.workout.complete(input),
-  });
+  const trpcClient = trpc.workout.complete.useMutation();
+  return trpcClient;
 };
 
 export const useDeleteWorkout = () => {
-  const trpc = useTRPC();
-  
-  return useMutation({
-    mutationFn: (id: string) => trpc.workout.delete(id),
-  });
+  const trpcClient = trpc.workout.delete.useMutation();
+  return trpcClient;
 }; 

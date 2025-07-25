@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Droplets, Smile, Gift, Utensils, Sparkles, TrendingUp, Star, Target } from 'lucide-react';
+import { Sparkles, TrendingUp, Star, Target, Heart, Camera, ShoppingBag } from 'lucide-react';
 import { SocialiteStats, getCurrentFameLevel, getNextFameLevel } from '../types/socialite';
 
 interface SocialiteCardProps {
@@ -97,85 +97,89 @@ const SocialiteCard: React.FC<SocialiteCardProps> = ({ socialite, onFeed, onClea
           </div>
         </div>
       </div>
+      
+      {/* Socialite Stats */}
       <div className="space-y-4 mb-6">
         <div>
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center">
-              <Utensils className="w-4 h-4 text-orange-500 mr-2" />
-              <span className="text-sm font-medium text-gray-700">Hunger</span>
+              <Heart className="w-4 h-4 text-pink-500 mr-2" />
+              <span className="text-sm font-medium text-gray-700">Wellness</span>
             </div>
-            <span className={`text-sm font-semibold ${getHealthTextColor(socialite.hunger)}`}>
-              {Math.round(socialite.hunger)}%
+            <span className={`text-sm font-semibold ${getHealthTextColor(socialite.wellness)}`}>
+              {Math.round(socialite.wellness)}%
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
-              className={`h-2 rounded-full transition-all duration-500 ${getHealthColor(socialite.hunger)}`}
-              style={{ width: `${socialite.hunger}%` }}
+              className={`h-2 rounded-full transition-all duration-500 ${getHealthColor(socialite.wellness)}`}
+              style={{ width: `${socialite.wellness}%` }}
             />
           </div>
         </div>
         <div>
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center">
-              <Droplets className="w-4 h-4 text-blue-500 mr-2" />
-              <span className="text-sm font-medium text-gray-700">Hygiene</span>
+              <Sparkles className="w-4 h-4 text-purple-500 mr-2" />
+              <span className="text-sm font-medium text-gray-700">Glam</span>
             </div>
-            <span className={`text-sm font-semibold ${getHealthTextColor(socialite.hygiene)}`}>
-              {Math.round(socialite.hygiene)}%
+            <span className={`text-sm font-semibold ${getHealthTextColor(socialite.glam)}`}>
+              {Math.round(socialite.glam)}%
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
-              className={`h-2 rounded-full transition-all duration-500 ${getHealthColor(socialite.hygiene)}`}
-              style={{ width: `${socialite.hygiene}%` }}
+              className={`h-2 rounded-full transition-all duration-500 ${getHealthColor(socialite.glam)}`}
+              style={{ width: `${socialite.glam}%` }}
             />
           </div>
         </div>
         <div>
           <div className="flex justify-between items-center mb-2">
             <div className="flex items-center">
-              <Smile className="w-4 h-4 text-purple-500 mr-2" />
-              <span className="text-sm font-medium text-gray-700">Happiness</span>
+              <ShoppingBag className="w-4 h-4 text-blue-500 mr-2" />
+              <span className="text-sm font-medium text-gray-700">Style</span>
             </div>
-            <span className={`text-sm font-semibold ${getHealthTextColor(socialite.happiness)}`}>
-              {Math.round(socialite.happiness)}%
+            <span className={`text-sm font-semibold ${getHealthTextColor(socialite.outfits)}`}>
+              {Math.round(socialite.outfits)}%
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
-              className={`h-2 rounded-full transition-all duration-500 ${getHealthColor(socialite.happiness)}`}
-              style={{ width: `${socialite.happiness}%` }}
+              className={`h-2 rounded-full transition-all duration-500 ${getHealthColor(socialite.outfits)}`}
+              style={{ width: `${socialite.outfits}%` }}
             />
           </div>
         </div>
       </div>
+      
+      {/* Socialite Actions */}
       <div className="grid grid-cols-3 gap-2">
         <button
           onClick={onFeed}
           disabled={credits < 10}
-          className="flex flex-col items-center p-3 bg-orange-50 hover:bg-orange-100 disabled:bg-gray-50 disabled:text-gray-400 text-orange-700 rounded-lg transition-colors"
+          className="flex flex-col items-center p-3 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 disabled:text-gray-400 text-pink-700 rounded-lg transition-colors"
         >
-          <Utensils className="w-5 h-5 mb-1" />
-          <span className="text-xs font-medium">Feed</span>
+          <Heart className="w-5 h-5 mb-1" />
+          <span className="text-xs font-medium">Wellness</span>
           <span className="text-xs text-gray-500">10c</span>
         </button>
         <button
           onClick={onClean}
           disabled={credits < 15}
-          className="flex flex-col items-center p-3 bg-blue-50 hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 text-blue-700 rounded-lg transition-colors"
+          className="flex flex-col items-center p-3 bg-purple-50 hover:bg-purple-100 disabled:bg-gray-50 disabled:text-gray-400 text-purple-700 rounded-lg transition-colors"
         >
           <Sparkles className="w-5 h-5 mb-1" />
-          <span className="text-xs font-medium">Clean</span>
+          <span className="text-xs font-medium">Glam</span>
           <span className="text-xs text-gray-500">15c</span>
         </button>
         <button
           onClick={onPlay}
           disabled={credits < 5}
-          className="flex flex-col items-center p-3 bg-purple-50 hover:bg-purple-100 disabled:bg-gray-50 disabled:text-gray-400 text-purple-700 rounded-lg transition-colors"
+          className="flex flex-col items-center p-3 bg-blue-50 hover:bg-blue-100 disabled:bg-gray-50 disabled:text-gray-400 text-blue-700 rounded-lg transition-colors"
         >
-          <Gift className="w-5 h-5 mb-1" />
-          <span className="text-xs font-medium">Play</span>
+          <Camera className="w-5 h-5 mb-1" />
+          <span className="text-xs font-medium">Photo</span>
           <span className="text-xs text-gray-500">5c</span>
         </button>
       </div>
@@ -183,4 +187,4 @@ const SocialiteCard: React.FC<SocialiteCardProps> = ({ socialite, onFeed, onClea
   );
 };
 
-export default SocialiteCard;
+export default SocialiteCard; 

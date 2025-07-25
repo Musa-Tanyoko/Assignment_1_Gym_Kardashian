@@ -7,10 +7,17 @@ import ProgressiveDifficultyDemo from './components/ProgressiveDifficultyDemo';
 import { TRPCProvider } from './components/TRPCProvider';
 
 interface User {
-  id: string;
+  uid: string;
   name: string;
   email: string;
-  // Add other user fields as needed
+  age?: number;
+  height?: number;
+  weight?: number;
+  fitnessGoal?: string;
+  activityLevel?: string;
+  bmi?: number;
+  credits?: number;
+  workoutsPerWeek?: number;
 }
 
 function App() {
@@ -22,6 +29,11 @@ function App() {
     setCurrentPage('dashboard');
   };
 
+  const handleSignOut = () => {
+    setUser(null);
+    setCurrentPage('home');
+  };
+
   const renderPage = () => {
     switch (currentPage) {
       case 'home':
@@ -29,7 +41,7 @@ function App() {
       case 'auth':
         return <AuthPage onAuth={handleAuth} onNavigate={setCurrentPage} />;
       case 'dashboard':
-        return <Dashboard user={user ?? {}} onNavigate={setCurrentPage} />;
+        return <Dashboard user={user ?? {}} onNavigate={setCurrentPage} onSignOut={handleSignOut} />;
       case 'demo':
         return <DemoPage onNavigate={setCurrentPage} />;
       case 'progressive-demo':

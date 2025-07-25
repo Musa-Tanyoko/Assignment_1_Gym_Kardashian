@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Play, Heart, Coins, Trophy, Timer, Sparkles, Camera, Plane, Rss, Smile, Dog, User } from 'lucide-react';
-import SocialiteCard from './PetCard';
+import { ArrowLeft, Play, Coins, Trophy, Timer, Sparkles, Camera, Plane, Rss, Smile, Dog, User } from 'lucide-react';
+import SocialiteCard from './SocialiteCard';
 
 interface DemoPageProps {
   onNavigate: (route: string) => void;
@@ -9,11 +9,13 @@ interface DemoPageProps {
 const DemoPage: React.FC<DemoPageProps> = ({ onNavigate }) => {
   const [demoStep, setDemoStep] = useState(0);
   const [socialite, setSocialite] = useState({
+    id: 1,
     name: 'Your Socialite',
-    type: 'influencer',
+    type: 'influencer' as const,
     level: 1,
     age: 12,
     fame: 100,
+    experience: 0,
     hunger: 45,
     hygiene: 30,
     happiness: 60,
@@ -26,7 +28,11 @@ const DemoPage: React.FC<DemoPageProps> = ({ onNavigate }) => {
     wellness: 50,
     petcare: 70,
     events: 30,
-    pr: 80
+    pr: 80,
+    totalWorkouts: 0,
+    totalCreditsEarned: 0,
+    createdAt: new Date(),
+    updatedAt: new Date()
   });
   const [credits, setCredits] = useState(75);
   const [isWorkingOut, setIsWorkingOut] = useState(false);
@@ -76,16 +82,16 @@ const DemoPage: React.FC<DemoPageProps> = ({ onNavigate }) => {
   };
 
   // Lifestyle needs actions
-  const spaDay = () => { if (credits >= 20) { setSocialite(s => ({ ...s, spa: Math.min(100, s.spa + 30) })); setCredits((c: number) => c - 20); } };
-  const glamTeam = () => { if (credits >= 15) { setSocialite(s => ({ ...s, glam: Math.min(100, s.glam + 25) })); setCredits((c: number) => c - 15); } };
-  const designerOutfit = () => { if (credits >= 25) { setSocialite(s => ({ ...s, outfits: Math.min(100, s.outfits + 40) })); setCredits((c: number) => c - 25); } };
-  const photoshoot = () => { if (credits >= 10) { setSocialite(s => ({ ...s, photoshoots: Math.min(100, s.photoshoots + 20), fame: s.fame + 10 })); setCredits((c: number) => c - 10); } };
-  const jetSetTrip = () => { if (credits >= 30) { setSocialite(s => ({ ...s, trips: Math.min(100, s.trips + 50), fame: s.fame + 20 })); setCredits((c: number) => c - 30); } };
-  const socialPost = () => { if (credits >= 5) { setSocialite(s => ({ ...s, posts: Math.min(100, s.posts + 10), fame: s.fame + 5 })); setCredits((c: number) => c - 5); } };
-  const wellnessRitual = () => { if (credits >= 10) { setSocialite(s => ({ ...s, wellness: Math.min(100, s.wellness + 20) })); setCredits((c: number) => c - 10); } };
-  const petCare = () => { if (credits >= 8) { setSocialite(s => ({ ...s, petcare: Math.min(100, s.petcare + 15) })); setCredits((c: number) => c - 8); } };
-  const eventRedCarpet = () => { if (credits >= 40) { setSocialite(s => ({ ...s, events: Math.min(100, s.events + 60), fame: s.fame + 30 })); setCredits((c: number) => c - 40); } };
-  const prPublicist = () => { if (credits >= 12) { setSocialite(s => ({ ...s, pr: Math.min(100, s.pr + 20) })); setCredits((c: number) => c - 12); } };
+  const spaDay = () => { if (credits >= 20) { setSocialite(s => ({ ...s, spa: Math.min(100, s.spa + 30) })); setCredits(c => c - 20); } };
+  const glamTeam = () => { if (credits >= 15) { setSocialite(s => ({ ...s, glam: Math.min(100, s.glam + 25) })); setCredits(c => c - 15); } };
+  const designerOutfit = () => { if (credits >= 25) { setSocialite(s => ({ ...s, outfits: Math.min(100, s.outfits + 40) })); setCredits(c => c - 25); } };
+  const photoshoot = () => { if (credits >= 10) { setSocialite(s => ({ ...s, photoshoots: Math.min(100, s.photoshoots + 20), fame: s.fame + 10 })); setCredits(c => c - 10); } };
+  const jetSetTrip = () => { if (credits >= 30) { setSocialite(s => ({ ...s, trips: Math.min(100, s.trips + 50), fame: s.fame + 20 })); setCredits(c => c - 30); } };
+  const socialPost = () => { if (credits >= 5) { setSocialite(s => ({ ...s, posts: Math.min(100, s.posts + 10), fame: s.fame + 5 })); setCredits(c => c - 5); } };
+  const wellnessRitual = () => { if (credits >= 10) { setSocialite(s => ({ ...s, wellness: Math.min(100, s.wellness + 20) })); setCredits(c => c - 10); } };
+  const socialiteCare = () => { if (credits >= 8) { setSocialite(s => ({ ...s, petcare: Math.min(100, s.petcare + 15) })); setCredits(c => c - 8); } };
+  const eventRedCarpet = () => { if (credits >= 40) { setSocialite(s => ({ ...s, events: Math.min(100, s.events + 60), fame: s.fame + 30 })); setCredits(c => c - 40); } };
+  const prPublicist = () => { if (credits >= 12) { setSocialite(s => ({ ...s, pr: Math.min(100, s.pr + 20) })); setCredits(c => c - 12); } };
 
   // Removed unused getNeedColor function
 
@@ -105,11 +111,9 @@ const DemoPage: React.FC<DemoPageProps> = ({ onNavigate }) => {
               Back to Home
             </button>
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-blue-500 rounded-full flex items-center justify-center">
-                <Heart className="w-5 h-5 text-white" />
-              </div>
+              <img src="https://i.ibb.co/FLB0NdKD/logo.jpg" alt="Gym Kardioshian Logo" className="w-8 h-8 rounded-full bg-white border border-gray-200 object-contain" />
               <span className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
-                Gym Kardashian Demo
+                Gym Kardioshian Demo
               </span>
             </div>
             <div className="flex items-center space-x-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full">
@@ -175,7 +179,7 @@ const DemoPage: React.FC<DemoPageProps> = ({ onNavigate }) => {
                 <button onClick={jetSetTrip} disabled={credits < 30} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors"><Plane className="w-5 h-5 mr-1" /> Jet-Set Trip <span className="ml-auto text-xs">30c</span></button>
                 <button onClick={socialPost} disabled={credits < 5} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors"><User className="w-5 h-5 mr-1" /> Social Post <span className="ml-auto text-xs">5c</span></button>
                 <button onClick={wellnessRitual} disabled={credits < 10} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors"><Sparkles className="w-5 h-5 mr-1" /> Wellness Ritual <span className="ml-auto text-xs">10c</span></button>
-                <button onClick={petCare} disabled={credits < 8} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors"><Dog className="w-5 h-5 mr-1" /> Pet Care <span className="ml-auto text-xs">8c</span></button>
+                <button onClick={socialiteCare} disabled={credits < 8} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors"><Dog className="w-5 h-5 mr-1" /> Socialite Care <span className="ml-auto text-xs">8c</span></button>
                 <button onClick={eventRedCarpet} disabled={credits < 40} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors"><Sparkles className="w-5 h-5 mr-1" /> Red Carpet Event <span className="ml-auto text-xs">40c</span></button>
                 <button onClick={prPublicist} disabled={credits < 12} className="flex items-center p-2 bg-pink-50 hover:bg-pink-100 disabled:bg-gray-50 text-pink-700 rounded-lg transition-colors"><Sparkles className="w-5 h-5 mr-1" /> PR & Publicist <span className="ml-auto text-xs">12c</span></button>
               </div>
@@ -202,7 +206,7 @@ const DemoPage: React.FC<DemoPageProps> = ({ onNavigate }) => {
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">Quick Push-ups</h4>
                   <p className="text-gray-600 text-sm">
-                    A glamorous 30-second demonstration workout to earn credits for your fabulous pets
+                    A glamorous 30-second demonstration workout to earn credits for your fabulous socialites
                   </p>
                 </div>
                 
@@ -227,7 +231,7 @@ const DemoPage: React.FC<DemoPageProps> = ({ onNavigate }) => {
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">Working Out!</h4>
                   <p className="text-gray-600 text-sm">
-                    Slay queen! You're earning credits to pamper your fabulous pets.
+                    Slay queen! You're earning credits to pamper your fabulous socialites.
                   </p>
                 </div>
 
@@ -256,7 +260,7 @@ const DemoPage: React.FC<DemoPageProps> = ({ onNavigate }) => {
         <div className="mt-12 text-center bg-gradient-to-r from-emerald-600 to-blue-600 rounded-2xl p-8 text-white">
           <h2 className="text-3xl font-bold mb-4">Ready to Start Your Real Journey?</h2>
           <p className="text-xl text-emerald-100 mb-6">
-            This was just a taste! Create your account to unlock the full Gym Kardashian experience with personalized workouts, multiple pets, and much more.
+            This was just a taste! Create your account to unlock the full Gym Kardioshian experience with personalized workouts, multiple socialites, and much more.
           </p>
           <button
             onClick={() => onNavigate('auth')}

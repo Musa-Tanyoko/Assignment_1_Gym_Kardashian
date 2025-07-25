@@ -1,17 +1,16 @@
-import { initTRPC } from '@trpc/server';
 import { z } from 'zod';
 // Import Firestore utilities (implement these in lib/firestore/pets.ts)
 import { getPetById, createPet, updatePet, deletePet } from '../lib/firestore/pets';
+import { protectedProcedure, router } from './index';
 
-const t = initTRPC.create();
-
-export const petRouter = t.router({
-  getById: t.procedure
+export const petRouter = router({
+  getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
       return await getPetById(input.id);
     }),
-  create: t.procedure
+
+  create: protectedProcedure
     .input(z.object({
       id: z.string(),
       name: z.string(),
@@ -22,7 +21,8 @@ export const petRouter = t.router({
     .mutation(async ({ input }) => {
       return await createPet(input);
     }),
-  update: t.procedure
+
+  update: protectedProcedure
     .input(z.object({
       id: z.string(),
       updates: z.record(z.any())
@@ -30,7 +30,8 @@ export const petRouter = t.router({
     .mutation(async ({ input }) => {
       return await updatePet(input.id, input.updates);
     }),
-  delete: t.procedure
+
+  delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
       return await deletePet(input.id);

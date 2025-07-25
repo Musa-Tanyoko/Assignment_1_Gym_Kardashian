@@ -1,15 +1,16 @@
 import { createServer } from 'http';
 import { parse } from 'url';
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
-import { appRouter, createContext } from '../lib/trpc/server';
+import { appRouter, createContext } from '../../../../functions/trpc';
 
 const server = createServer(async (req, res) => {
   const url = parse(req.url!, true);
   
   if (url.pathname?.startsWith('/api/trpc')) {
+    // Use Node.js IncomingMessage type for req
     const response = await fetchRequestHandler({
       endpoint: '/api/trpc',
-      req: req as any,
+      req: req as import('http').IncomingMessage,
       router: appRouter,
       createContext,
       onError:

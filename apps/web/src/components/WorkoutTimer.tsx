@@ -1,24 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { Play, Pause, SkipForward, X, Trophy, Target, TrendingUp } from 'lucide-react';
-import { ProgressiveWorkout, ExerciseDifficulty } from '../types/socialite';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Play, Pause, SkipForward, X, Trophy } from 'lucide-react';
+import { ProgressiveWorkout } from '../types/socialite';
 
 interface WorkoutTimerProps {
-  user: any;
-  onComplete: (credits: number) => void;
+  user: { id: number; name: string; level: number; fame: number };
+  onComplete: (credits: number, workoutMeta?: { exercises: ProgressiveWorkout['exercises']; totalDuration: number; difficulty: number }) => void;
   onClose: () => void;
   progressiveWorkout?: ProgressiveWorkout;
 }
 
-const WorkoutTimer: React.FC<WorkoutTimerProps> = ({ user, onComplete, onClose, progressiveWorkout }) => {
+const WorkoutTimer: React.FC<WorkoutTimerProps> = ({ onComplete, onClose, progressiveWorkout }) => {
   const [currentExercise, setCurrentExercise] = useState(0);
   const [timeLeft, setTimeLeft] = useState(45);
   const [isActive, setIsActive] = useState(false);
   const [isResting, setIsResting] = useState(false);
   const [completedExercises, setCompletedExercises] = useState(0);
-  const [currentSet, setCurrentSet] = useState(1);
+  const [showCompletion, setShowCompletion] = useState(false);
+  const [earnedCredits, setEarnedCredits] = useState<number | null>(null);
 
   // Use progressive workout if provided, otherwise fall back to default
-  const exercises = progressiveWorkout?.exercises || [
+  const exercises = useMemo(() => progressiveWorkout?.exercises || [
     {
       level: 1,
       name: 'Push-ups',
@@ -48,7 +49,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({ user, onComplete, onClose, 
       name: 'Plank',
       description: 'Hold your body straight in push-up position',
       baseSets: 3,
-      baseReps: '30s',
+      baseReps: 30,
       baseDuration: 30,
       intensityMultiplier: 1.0,
       creditReward: 10,
@@ -67,7 +68,30 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({ user, onComplete, onClose, 
       requirements: { minFame: 0, minLevel: 1 },
       image: '🔥'
     }
-  ];
+  ], [progressiveWorkout?.exercises]);
+
+  const completeWorkout = useCallback(() => {
+    const credits = Math.floor(50 + (completedExercises * 10) + Math.random() * 30);
+    setEarnedCredits(credits);
+    setShowCompletion(true);
+    // Pass workout meta to onComplete
+    onComplete(credits, {
+      exercises,
+      totalDuration: exercises.reduce((sum, ex) => sum + (ex.baseDuration || 0), 0),
+      difficulty: progressiveWorkout?.difficulty || 1,
+    });
+  }, [completedExercises, exercises, progressiveWorkout?.difficulty, onComplete]);
+
+  const handleNextExercise = useCallback(() => {
+    if (currentExercise < exercises.length - 1) {
+      setCurrentExercise(currentExercise + 1);
+      setTimeLeft(15); // Rest period
+      setIsResting(true);
+      setCompletedExercises(completedExercises + 1);
+    } else {
+      completeWorkout();
+    }
+  }, [currentExercise, exercises.length, completedExercises, completeWorkout]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -86,23 +110,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({ user, onComplete, onClose, 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, timeLeft, isResting, currentExercise]);
-
-  const handleNextExercise = () => {
-    if (currentExercise < exercises.length - 1) {
-      setCurrentExercise(currentExercise + 1);
-      setTimeLeft(15); // Rest period
-      setIsResting(true);
-      setCompletedExercises(completedExercises + 1);
-    } else {
-      completeWorkout();
-    }
-  };
-
-  const completeWorkout = () => {
-    const earnedCredits = Math.floor(50 + (completedExercises * 10) + Math.random() * 30);
-    onComplete(earnedCredits);
-  };
+  }, [isActive, timeLeft, isResting, currentExercise, exercises, handleNextExercise]);
 
   const toggleTimer = () => {
     setIsActive(!isActive);
@@ -120,6 +128,24 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({ user, onComplete, onClose, 
 
   const currentEx = exercises[currentExercise];
   const progress = ((currentExercise + (isResting ? 1 : 0)) / exercises.length) * 100;
+
+  if (showCompletion && earnedCredits !== null) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 flex flex-col items-center">
+          <Trophy className="w-16 h-16 text-emerald-500 mb-4" />
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Workout Complete!</h2>
+          <p className="text-lg text-gray-700 mb-4">You earned <span className="font-bold text-emerald-600">{earnedCredits}</span> credits!</p>
+          <button
+            onClick={onClose}
+            className="mt-4 px-6 py-3 bg-gradient-to-r from-emerald-500 to-blue-500 text-white rounded-lg hover:from-emerald-600 hover:to-blue-600 transition-all duration-300 text-lg font-semibold"
+          >
+            Exit Workout
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -156,12 +182,12 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({ user, onComplete, onClose, 
           </div>
         ) : currentEx ? (
           <div className="text-center mb-8">
-            <div className="text-6xl mb-4">{(currentEx as any).image || '🏋️‍♀️'}</div>
+            <div className="text-6xl mb-4">{(currentEx as { image?: string }).image || '🏋️‍♀️'}</div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">{currentEx.name}</h3>
             <p className="text-gray-600 mb-4">{currentEx.description}</p>
             <div className="bg-emerald-50 rounded-lg p-3">
               <div className="flex items-center justify-center space-x-2">
-                <span className="text-2xl">{(currentEx as any).image || '🏋️‍♀️'}</span>
+                <span className="text-2xl">{(currentEx as { image?: string }).image || '🏋️‍♀️'}</span>
                 <p className="text-emerald-800 font-medium">
                   {currentEx.baseSets} sets × {currentEx.baseReps} reps
                 </p>
@@ -218,7 +244,7 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({ user, onComplete, onClose, 
                   : 'bg-white border border-gray-200'
               }`}
             >
-              <span className="text-2xl mr-3">{(exercise as any).image || '🏋️‍♀️'}</span>
+              <span className="text-2xl mr-3">{(exercise as { image?: string }).image || '🏋️‍♀️'}</span>
               <div className="flex-1">
                 <p className="font-medium">{exercise.name}</p>
                 <p className="text-sm text-gray-500">

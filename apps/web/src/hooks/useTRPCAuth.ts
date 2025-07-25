@@ -1,50 +1,22 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useTRPC } from '../components/TRPCProvider';
+import { trpc } from '../lib/trpc/client';
 
 export const useSignUp = () => {
-  const trpc = useTRPC();
-  
-  return useMutation({
-    mutationFn: (input: {
-      email: string;
-      password: string;
-      userData: {
-        name: string;
-        age: number;
-        weight: number;
-        height?: number;
-        fitnessGoal: string;
-        activityLevel: string;
-        bmi?: number;
-        credits?: number;
-      };
-    }) => trpc.auth.signUp(input),
-  });
+  const trpcClient = trpc.auth.signUp.useMutation();
+  return trpcClient;
 };
 
 export const useSignIn = () => {
-  const trpc = useTRPC();
-  
-  return useMutation({
-    mutationFn: (input: { email: string; password: string }) => 
-      trpc.auth.signIn(input),
-  });
+  const trpcClient = trpc.auth.signIn.useMutation();
+  return trpcClient;
 };
 
 export const useSignOut = () => {
-  const trpc = useTRPC();
-  
-  return useMutation({
-    mutationFn: () => trpc.auth.signOut(),
-  });
+  const trpcClient = trpc.auth.signOut.useMutation();
+  return trpcClient;
 };
 
-export const useCurrentUser = () => {
-  const trpc = useTRPC();
-  
-  return useQuery({
-    queryKey: ['currentUser'],
-    queryFn: () => trpc.auth.getCurrentUser(),
-    retry: false,
-  });
+export const useGetCurrentUser = () => {
+  const trpcClient = trpc.auth.getCurrentUser.useQuery();
+  return trpcClient;
 }; 

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import SocialiteCard from './PetCard';
+import SocialiteCard from './SocialiteCard';
 import { SocialiteStats } from '../types/socialite';
 
 const meta: Meta<typeof SocialiteCard> = {

@@ -1,31 +1,23 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useTRPC } from '../components/TRPCProvider';
+import { trpc } from '../lib/trpc/client';
 
-export const useGetUser = (uid: string) => {
-  const trpc = useTRPC();
-  
-  return useQuery({
-    queryKey: ['user', uid],
-    queryFn: () => trpc.user.getById(uid),
-    enabled: !!uid,
-  });
+export const useGetUserById = (uid: string) => {
+  const trpcClient = trpc.user.getById.useQuery({ uid });
+  return trpcClient;
+};
+
+export const useCreateUser = () => {
+  const trpcClient = trpc.user.create.useMutation();
+  return trpcClient;
 };
 
 export const useUpdateUser = () => {
-  const trpc = useTRPC();
-  
-  return useMutation({
-    mutationFn: (input: { uid: string; updates: any }) => 
-      trpc.user.update(input),
-  });
+  const trpcClient = trpc.user.update.useMutation();
+  return trpcClient;
 };
 
 export const useDeleteUser = () => {
-  const trpc = useTRPC();
-  
-  return useMutation({
-    mutationFn: (uid: string) => trpc.user.delete(uid),
-  });
+  const trpcClient = trpc.user.delete.useMutation();
+  return trpcClient;
 };
 
 export const useGetAllUsers = (limit?: number) => {

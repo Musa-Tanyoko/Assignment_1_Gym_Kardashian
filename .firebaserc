@@ -1,5 +1,19 @@
 {
   "projects": {
-    "default": "gym-kardashian-58996"
-  }
+    "default": "gym-kardashian-58996",
+    "staging": "gym-kardioashian-staging"
+  },
+  "targets": {
+    "gym-kardioashian-staging": {
+      "hosting": {
+        "dev": [
+          "gym-kardashian-58996"
+        ],
+        "staging": [
+          "gym-kardioashian-staging"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

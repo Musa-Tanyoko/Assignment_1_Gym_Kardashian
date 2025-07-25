@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import WorkoutTimer from './WorkoutTimer';
-import { ProgressiveWorkout, ExerciseDifficulty } from '../types/socialite';
+import { ProgressiveWorkout } from '../types/socialite';
 
 const meta: Meta<typeof WorkoutTimer> = {
   title: 'Components/WorkoutTimer',

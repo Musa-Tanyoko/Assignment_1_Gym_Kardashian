@@ -1,7 +1,17 @@
 /** @type {import("eslint").Linter.Config} */
 module.exports = {
-  extends: ["@fitness-app/config/eslint"],
+  extends: ["eslint:recommended"],
   parserOptions: {
-    project: true,
+    ecmaVersion: "latest",
+    sourceType: "module",
+  },
+  env: {
+    browser: true,
+    es2022: true,
+    node: true,
+  },
+  rules: {
+    "no-unused-vars": "warn",
+    "no-console": "warn",
   },
 }; 

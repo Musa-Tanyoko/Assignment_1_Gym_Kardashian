@@ -4,16 +4,12 @@ import {
   Star, 
   Target, 
   Trophy, 
-  Play, 
   Zap,
-  ArrowRight,
   Crown,
   Sparkles
 } from 'lucide-react';
 import { 
   SocialiteStats, 
-  FameLevel, 
-  ExerciseDifficulty,
   FAME_LEVELS, 
   EXERCISE_DIFFICULTIES,
   getCurrentFameLevel,

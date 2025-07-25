@@ -3,7 +3,6 @@ import {
   Heart, 
   Trophy, 
   Calendar, 
-  Zap, 
   Play, 
   Star,
   ArrowRight,
@@ -24,11 +23,9 @@ const Homepage: React.FC<HomepageProps> = ({ onNavigate }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-blue-500 rounded-full flex items-center justify-center">
-                <Heart className="w-6 h-6 text-white" />
-              </div>
+                <img src="https://i.ibb.co/FLB0NdKD/logo.jpg" alt="Gym Kardioshian Logo" className="w-10 h-10 rounded-full bg-white border border-gray-200 object-contain" />
               <span className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
-                Gym Kardashian
+                    Gym Kardioshian
               </span>
             </div>
             <div className="flex space-x-4">
@@ -66,7 +63,7 @@ const Homepage: React.FC<HomepageProps> = ({ onNavigate }) => {
               </span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Transform your fitness journey into a glamorous adventure. Care for virtual pets while achieving your body goals with personalized workouts that keep you motivated and fabulous.
+                  Transform your fitness journey into a glamorous adventure. Care for your virtual socialite while achieving your body goals with personalized workouts that keep you motivated and fabulous.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
@@ -93,10 +90,10 @@ const Homepage: React.FC<HomepageProps> = ({ onNavigate }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Why Choose Gym Kardashian?
+                  Why Choose Gym Kardioshian?
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Experience fitness with style and glamour through our innovative pet care system
+                  Experience fitness with style and glamour through our innovative socialite care system
             </p>
           </div>
 
@@ -105,10 +102,10 @@ const Homepage: React.FC<HomepageProps> = ({ onNavigate }) => {
               <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center mb-6">
                 <Heart className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Virtual Pet Care</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Virtual Socialite Care</h3>
               <p className="text-gray-600">
-                Adopt and care for digital pets that depend on your fitness progress. 
-                Feed, bathe, and entertain them by completing workouts.
+                Adopt and care for your digital socialite that depends on your fitness progress. 
+                Feed, pamper, and entertain them by completing workouts.
               </p>
             </div>
 
@@ -129,8 +126,8 @@ const Homepage: React.FC<HomepageProps> = ({ onNavigate }) => {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Earn Credits</h3>
               <p className="text-gray-600">
-                Complete exercises to earn credits. Use them to buy food, toys, 
-                and accessories for your growing pet family.
+                Complete exercises to earn credits. Use them to buy food, gifts, 
+                and accessories for your growing socialite collection.
               </p>
             </div>
 
@@ -140,7 +137,7 @@ const Homepage: React.FC<HomepageProps> = ({ onNavigate }) => {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Smart Scheduling</h3>
               <p className="text-gray-600">
-                Built-in calendar helps you plan workouts and track your pet's 
+                    Built-in calendar helps you plan workouts and track your socialite's 
                 daily needs and health status.
               </p>
             </div>
@@ -149,9 +146,9 @@ const Homepage: React.FC<HomepageProps> = ({ onNavigate }) => {
               <div className="w-12 h-12 bg-pink-500 rounded-full flex items-center justify-center mb-6">
                 <Users className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Pet Growth System</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Socialite Growth System</h3>
               <p className="text-gray-600">
-                Watch your pets grow, evolve, and even reproduce. More pets mean 
+                Watch your socialite grow, evolve, and become more fabulous. More socialites mean 
                 more motivation to stay active!
               </p>
             </div>
@@ -177,7 +174,7 @@ const Homepage: React.FC<HomepageProps> = ({ onNavigate }) => {
             Ready to Keep Up With Your Goals?
           </h2>
           <p className="text-xl text-emerald-100 mb-8">
-            Join thousands who've transformed their fitness journey with Gym Kardashian
+                Join thousands who've transformed their fitness journey with Gym Kardioshian
           </p>
           <button
             onClick={() => onNavigate('auth')}
@@ -194,11 +191,8 @@ const Homepage: React.FC<HomepageProps> = ({ onNavigate }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex items-center justify-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-blue-500 rounded-full flex items-center justify-center">
-                <Heart className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold">FitPet</span>
-              <span className="text-xl font-bold">Gym Kardashian</span>
+              <img src="https://i.ibb.co/FLB0NdKD/logo.jpg" alt="Gym Kardioshian Logo" className="w-8 h-8 rounded-full bg-white border border-gray-200 object-contain" />
+              <span className="text-xl font-bold">Gym Kardioshian</span>
             </div>
             <p className="text-gray-400">
               Keeping up with your fitness goals, one workout at a time.

@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, CheckCircle, Circle, Target } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, Circle } from 'lucide-react';
 
-const Calendar = ({ user }) => {
+interface User {
+  uid: string;
+  name?: string;
+  email?: string;
+  workoutsPerWeek?: number;
+  // Add more fields as needed
+}
+interface CalendarProps {
+  user: User;
+}
+
+const Calendar: React.FC<CalendarProps> = ({ user }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   
   const today = new Date();
@@ -21,7 +32,7 @@ const Calendar = ({ user }) => {
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   
   // Mock workout data
-  const workoutDays = {
+  const workoutDays: Record<number, { completed: boolean; type: string }> = {
     1: { completed: true, type: 'strength' },
     3: { completed: true, type: 'cardio' },
     5: { completed: false, type: 'strength' },
@@ -37,12 +48,12 @@ const Calendar = ({ user }) => {
     29: { completed: false, type: 'strength' }
   };
   
-  const navigateMonth = (direction) => {
+  const navigateMonth = (direction: number) => {
     setCurrentDate(new Date(year, month + direction, 1));
   };
   
-  const getWorkoutTypeColor = (type) => {
-    const colors = {
+  const getWorkoutTypeColor = (type: string) => {
+    const colors: Record<string, string> = {
       strength: 'bg-emerald-500',
       cardio: 'bg-blue-500',
       flexibility: 'bg-purple-500'

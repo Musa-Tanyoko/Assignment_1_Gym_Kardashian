@@ -1,4 +1,4 @@
-import React from 'react';
+// import React from 'react';
 import { Clock, Target, Zap, Heart } from 'lucide-react';
 
 const ExerciseLibrary = () => {
@@ -142,12 +142,7 @@ const ExerciseLibrary = () => {
   ];
 
 
-  type Category =
-    | 'Upper Body'
-    | 'Lower Body'
-    | 'Core'
-    | 'Cardio'
-    | 'Full Body';
+
 
   type Difficulty =
     | 'Beginner'
@@ -163,7 +158,7 @@ const ExerciseLibrary = () => {
     }
   };
 
-  const getCategoryColor = (category) => {
+  const getCategoryColor = (category: string) => {
     switch (category) {
       case 'Upper Body': return 'bg-blue-100 text-blue-800';
       case 'Lower Body': return 'bg-purple-100 text-purple-800';
