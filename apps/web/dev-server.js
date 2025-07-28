@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { createExpressMiddleware } = require('@trpc/server/adapters/express');
-const { appRouter, createContext } = require('./src/lib/trpc/server.ts');
+const { appRouter, createContext } = require('../functions/trpc');
 
 const app = express();
 

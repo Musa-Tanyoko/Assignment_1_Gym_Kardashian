@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { User, Calendar, Target, Activity, Save, X, Edit3, Weight, Ruler } from 'lucide-react';
-import { trpc } from '../lib/trpc/client';
-import { getAuth } from 'firebase/auth';
-import { app } from '../lib/firebase';
+import { useTRPCContext } from './TRPCProvider';
 
 interface ProfileEditorProps {
   user: {
@@ -20,6 +18,8 @@ interface ProfileEditorProps {
 
 export const ProfileEditor: React.FC<ProfileEditorProps> = ({ user, onClose, onSave }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: user.name,
     age: user.age,
@@ -29,18 +29,23 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({ user, onClose, onS
     activityLevel: user.activityLevel,
   });
 
-  const updateUserMutation = trpc.user.update.useMutation();
+  const trpcClient = useTRPCContext();
 
   const handleSave = async () => {
     try {
-      await updateUserMutation.mutateAsync({
+      setIsLoading(true);
+      setError(null);
+      await trpcClient.user.update({
         uid: user.uid,
         updates: formData,
       });
       setIsEditing(false);
       onSave();
-    } catch (error) {
-      console.error('Failed to update profile:', error);
+    } catch (err) {
+      console.error('Failed to update profile:', err);
+      setError('Failed to update profile. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -54,6 +59,7 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({ user, onClose, onS
       activityLevel: user.activityLevel,
     });
     setIsEditing(false);
+    setError(null);
   };
 
   return (
@@ -75,7 +81,7 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({ user, onClose, onS
             <>
               <button
                 onClick={handleSave}
-                disabled={updateUserMutation.isLoading}
+                disabled={isLoading}
                 className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
               >
                 <Save className="w-5 h-5" />
@@ -223,11 +229,9 @@ export const ProfileEditor: React.FC<ProfileEditorProps> = ({ user, onClose, onS
         </div>
       </div>
 
-      {updateUserMutation.isError && (
+      {error && (
         <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-red-600 text-sm">
-            Failed to update profile. Please try again.
-          </p>
+          <p className="text-red-600 text-sm">{error}</p>
         </div>
       )}
     </div>

@@ -1,6 +1,19 @@
-import React, { ReactNode } from 'react';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { trpc, trpcClient, queryClient } from '../lib/trpc/client';
+import React, { ReactNode, createContext, useContext } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { trpcClient } from '../lib/trpc/client';
+
+// Create a context for the mock tRPC client
+const TRPCContext = createContext(trpcClient);
+
+// Create a fresh query client for the app
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
 interface TRPCProviderProps {
   children: ReactNode;
@@ -8,10 +21,13 @@ interface TRPCProviderProps {
 
 export const TRPCProvider: React.FC<TRPCProviderProps> = ({ children }) => {
   return (
-    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+    <TRPCContext.Provider value={trpcClient}>
       <QueryClientProvider client={queryClient}>
         {children}
       </QueryClientProvider>
-    </trpc.Provider>
+    </TRPCContext.Provider>
   );
-}; 
+};
+
+// Export the context for use in hooks
+export const useTRPCContext = () => useContext(TRPCContext); 

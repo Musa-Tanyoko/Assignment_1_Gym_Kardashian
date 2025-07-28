@@ -1,30 +1,74 @@
-import { trpc } from '../lib/trpc/client';
+import { useTRPCContext } from '../components/TRPCProvider';
+import { useState, useEffect } from 'react';
 
 export const useGetUserById = (uid: string) => {
-  const trpcClient = trpc.user.getById.useQuery({ uid });
-  return trpcClient;
+  const trpcClient = useTRPCContext();
+  const [data, setData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        setIsLoading(true);
+        const result = await trpcClient.user.getById(uid);
+        setData(result);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (uid) {
+      fetchUser();
+    }
+  }, [uid, trpcClient]);
+
+  return { data, isLoading, error };
 };
 
 export const useCreateUser = () => {
-  const trpcClient = trpc.user.create.useMutation();
-  return trpcClient;
+  const trpcClient = useTRPCContext();
+  
+  return {
+    mutateAsync: async (data: any) => {
+      return await trpcClient.user.create(data);
+    },
+    isLoading: false,
+    error: null,
+  };
 };
 
 export const useUpdateUser = () => {
-  const trpcClient = trpc.user.update.useMutation();
-  return trpcClient;
+  const trpcClient = useTRPCContext();
+  
+  return {
+    mutateAsync: async (data: any) => {
+      return await trpcClient.user.update(data);
+    },
+    isLoading: false,
+    error: null,
+  };
 };
 
 export const useDeleteUser = () => {
-  const trpcClient = trpc.user.delete.useMutation();
-  return trpcClient;
+  const trpcClient = useTRPCContext();
+  
+  return {
+    mutateAsync: async (uid: string) => {
+      return await trpcClient.user.delete(uid);
+    },
+    isLoading: false,
+    error: null,
+  };
 };
 
-export const useGetAllUsers = (limit?: number) => {
-  const trpc = useTRPC();
-  
-  return useQuery({
-    queryKey: ['users', limit],
-    queryFn: () => trpc.user.getAll({ limit }),
-  });
+export const useGetAllUsers = () => {
+  // This would need to be implemented in your backend
+  return {
+    data: [],
+    isLoading: false,
+    error: null,
+  };
 }; 

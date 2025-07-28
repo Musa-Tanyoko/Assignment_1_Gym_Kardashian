@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { User, Mail, Lock, Calendar, Target, Activity, ArrowLeft, AlertCircle } from 'lucide-react';
-import { useSignUp, useSignIn } from '../hooks/useTRPCAuth';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
+import { app } from '../lib/firebase';
 
 interface UserData {
   uid: string;
@@ -14,6 +16,7 @@ interface UserData {
   bmi?: number;
   credits?: number;
 }
+
 interface AuthPageProps {
   onAuth: (userData: UserData) => void;
   onNavigate: (route: string) => void;
@@ -35,8 +38,8 @@ const AuthPage: React.FC<AuthPageProps> = ({ onAuth, onNavigate }) => {
     workoutsPerWeek: '3'
   });
 
-  const signUpMutation = useSignUp();
-  const signInMutation = useSignIn();
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -46,17 +49,34 @@ const AuthPage: React.FC<AuthPageProps> = ({ onAuth, onNavigate }) => {
     try {
       if (isLogin) {
         // Handle login
-        const result = await signInMutation.mutateAsync({
-          email: formData.email,
-          password: formData.password
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          formData.email,
+          formData.password
+        );
+        
+        const user = userCredential.user;
+        onAuth({
+          uid: user.uid,
+          name: user.displayName || 'User',
+          email: user.email || '',
+          credits: 100
         });
-        if ((result as { user?: UserData })?.user) {
-          onAuth((result as { user: UserData }).user);
-        }
       } else {
         // Handle signup
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          formData.email,
+          formData.password
+        );
+        
+        const user = userCredential.user;
+        
+        // Create user document in Firestore
         const userData = {
+          uid: user.uid,
           name: formData.name,
+          email: formData.email,
           age: isNaN(parseInt(formData.age)) ? 0 : parseInt(formData.age),
           weight: parseFloat(formData.weight),
           height: formData.height ? parseFloat(formData.height) : undefined,
@@ -64,22 +84,32 @@ const AuthPage: React.FC<AuthPageProps> = ({ onAuth, onNavigate }) => {
           activityLevel: formData.activityLevel,
           bmi: formData.weight && formData.height ? 
             parseFloat((parseFloat(formData.weight) / Math.pow(parseFloat(formData.height) / 100, 2)).toFixed(1)) : undefined,
-          credits: 100
+          credits: 100,
+          createdAt: new Date(),
+          updatedAt: new Date()
         };
-        const result = await signUpMutation.mutateAsync({
-          email: formData.email,
-          password: formData.password,
-          userData
-        });
-        if ((result as { user?: UserData })?.user) {
-          onAuth((result as { user: UserData }).user);
-        }
+        
+        await setDoc(doc(db, 'users', user.uid), userData);
+        
+        onAuth(userData);
       }
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message || 'An error occurred during authentication');
+    } catch (error: unknown) {
+      console.error('Authentication error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      const errorCode = (error as { code?: string })?.code;
+      
+      if (errorCode === 'auth/user-not-found') {
+        setError('No account found with this email address');
+      } else if (errorCode === 'auth/wrong-password') {
+        setError('Incorrect password');
+      } else if (errorCode === 'auth/email-already-in-use') {
+        setError('An account with this email already exists');
+      } else if (errorCode === 'auth/weak-password') {
+        setError('Password should be at least 6 characters');
+      } else if (errorCode === 'auth/invalid-email') {
+        setError('Invalid email address');
       } else {
-        setError('An error occurred during authentication');
+        setError(errorMessage);
       }
     } finally {
       setIsLoading(false);

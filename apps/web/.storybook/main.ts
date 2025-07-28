@@ -1,4 +1,6 @@
 import type { StorybookConfig } from "@storybook/react-vite";
+import tailwindcss from 'tailwindcss';
+import autoprefixer from 'autoprefixer';
 
 const config: StorybookConfig = {
   stories: [
@@ -21,18 +23,15 @@ const config: StorybookConfig = {
   },
   viteFinal: async (config) => {
     // Add Tailwind CSS support
-    // Import plugins at the top of the file to avoid require()
-    // (see imports below)
-    config.css = {
-      postcss: {
-        plugins: [
-          tailwindcss,
-          autoprefixer,
-        ],
-      },
-    };
-import tailwindcss from 'tailwindcss';
-import autoprefixer from 'autoprefixer';
+config.css = {
+  postcss: {
+    plugins: [
+      tailwindcss,
+      autoprefixer,
+    ],
+  },
+};
+return config;
     return config;
   },
 };

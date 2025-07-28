@@ -1,10 +1,10 @@
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
-import StatsPage from '../StatsPage';
-import { trpc } from '../../lib/trpc/client';
+import { StatsPage } from '../StatsPage';
+import { trpcClient } from '../../lib/trpc/client';
+import '@testing-library/jest-dom';
 
 jest.mock('../../lib/trpc/client', () => ({
-  trpc: {
+  trpcClient: {
     workout: {
       getStats: { useQuery: jest.fn() },
       getCredits: { useQuery: jest.fn() },
@@ -17,9 +17,9 @@ jest.mock('../../lib/trpc/client', () => ({
 
 describe('StatsPage', () => {
   it('renders stats and credits', async () => {
-    trpc.workout.getStats.useQuery.mockReturnValue({ data: { steps: 1000, exercisesCompleted: 5, streak: 2, sessions: 3, hours: 1.5 } });
-    trpc.workout.getCredits.useQuery.mockReturnValue({ data: { credits: 200 } });
-    trpc.user.importActivityLogs.useMutation.mockReturnValue({ mutateAsync: jest.fn() });
+    trpcClient.workout.getStats.useQuery.mockReturnValue({ data: { steps: 1000, exercisesCompleted: 5, streak: 2, sessions: 3, hours: 1.5 } });
+    trpcClient.workout.getCredits.useQuery.mockReturnValue({ data: { credits: 200 } });
+    trpcClient.user.importActivityLogs.useMutation.mockReturnValue({ mutateAsync: jest.fn() });
 
     render(<StatsPage user={{ uid: 'test-user' }} />);
     await waitFor(() => expect(screen.getByText(/Credits:/)).toBeInTheDocument());

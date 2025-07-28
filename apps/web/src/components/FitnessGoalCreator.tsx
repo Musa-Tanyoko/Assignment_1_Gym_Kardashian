@@ -1,170 +1,89 @@
 import { useState } from 'react';
-import { Target, Activity, X, Plus, TrendingUp, Heart, Zap } from 'lucide-react';
-import { trpc } from '../lib/trpc/client';
-import { getAuth } from 'firebase/auth';
+import { Target, Save, X } from 'lucide-react';
+import { useTRPCContext } from './TRPCProvider';
 
 interface FitnessGoalCreatorProps {
+  userId: string;
   onClose: () => void;
-  onGoalSet: () => void;
+  onSave: () => void;
 }
 
-const fitnessGoals = [
-  {
-    id: 'weight-loss',
-    name: 'Weight Loss',
-    icon: TrendingUp,
-    description: 'Shed pounds and improve body composition',
-    color: 'text-red-500',
-    bgColor: 'bg-red-50',
-  },
-  {
-    id: 'muscle-gain',
-    name: 'Muscle Gain',
-    icon: Zap,
-    description: 'Build strength and increase muscle mass',
-    color: 'text-blue-500',
-    bgColor: 'bg-blue-50',
-  },
-  {
-    id: 'endurance',
-    name: 'Endurance',
-    icon: Heart,
-    description: 'Improve cardiovascular fitness and stamina',
-    color: 'text-green-500',
-    bgColor: 'bg-green-50',
-  },
-  {
-    id: 'flexibility',
-    name: 'Flexibility',
-    icon: Activity,
-    description: 'Enhance mobility and range of motion',
-    color: 'text-purple-500',
-    bgColor: 'bg-purple-50',
-  },
-  {
-    id: 'general-fitness',
-    name: 'General Fitness',
-    icon: Target,
-    description: 'Overall health and wellness improvement',
-    color: 'text-orange-500',
-    bgColor: 'bg-orange-50',
-  },
-];
-
-export const FitnessGoalCreator: React.FC<FitnessGoalCreatorProps> = ({ onClose, onGoalSet }) => {
-  const [selectedGoal, setSelectedGoal] = useState<string>('');
+export const FitnessGoalCreator: React.FC<FitnessGoalCreatorProps> = ({ userId, onClose, onSave }) => {
+  const [fitnessGoal, setFitnessGoal] = useState('general-fitness');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const trpcClient = useTRPCContext();
 
-  const trpcClient = trpc.user.setFitnessGoal.useMutation();
-
-  const handleGoalSelect = (goalId: string) => {
-    setSelectedGoal(goalId);
-  };
-
-  const handleSetGoal = async () => {
-    if (!selectedGoal) return;
-
-    setIsLoading(true);
+  const handleSave = async () => {
     try {
-      const auth = getAuth();
-      const user = auth.currentUser;
-      if (!user) throw new Error('No authenticated user');
-
-      await trpcClient.mutateAsync({
-        uid: user.uid,
-        fitnessGoal: selectedGoal,
+      setIsLoading(true);
+      setError(null);
+      await trpcClient.user.update({
+        uid: userId,
+        updates: { fitnessGoal },
       });
-
-      onGoalSet();
-      onClose();
-    } catch (error) {
-      console.error('Failed to set fitness goal:', error);
+      onSave();
+    } catch (err) {
+      console.error('Failed to set fitness goal:', err);
+      setError('Failed to set fitness goal. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-              <Target className="w-6 h-6 mr-2 text-emerald-600" />
-              Choose Your Fitness Goal
-            </h2>
-            <button
-              onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-          <p className="text-gray-600 mt-2">
-            Select a primary fitness goal to personalize your workout recommendations
-          </p>
-        </div>
-
-        <div className="p-6">
-          <div className="grid gap-4">
-            {fitnessGoals.map((goal) => {
-              const Icon = goal.icon;
-              return (
-                <button
-                  key={goal.id}
-                  onClick={() => handleGoalSelect(goal.id)}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    selectedGoal === goal.id
-                      ? 'border-emerald-500 bg-emerald-50'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-start space-x-4">
-                    <div className={`p-3 rounded-lg ${goal.bgColor}`}>
-                      <Icon className={`w-6 h-6 ${goal.color}`} />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <h3 className="font-semibold text-gray-900">{goal.name}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{goal.description}</p>
-                    </div>
-                    {selectedGoal === goal.id && (
-                      <div className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
-                        <Plus className="w-4 h-4 text-white transform rotate-45" />
-                      </div>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-6">
-            <button
-              onClick={onClose}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSetGoal}
-              disabled={!selectedGoal || isLoading}
-              className="flex items-center px-6 py-3 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Setting Goal...
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Set Goal
-                </>
-              )}
-            </button>
-          </div>
+    <div className="bg-white rounded-lg shadow-lg p-6 max-w-md mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+          <Target className="w-6 h-6 mr-2" />
+          Set Fitness Goal
+        </h2>
+        <div className="flex space-x-2">
+          <button
+            onClick={handleSave}
+            disabled={isLoading}
+            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+          >
+            <Save className="w-5 h-5" />
+          </button>
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
       </div>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            What's your primary fitness goal?
+          </label>
+          <select
+            value={fitnessGoal}
+            onChange={(e) => setFitnessGoal(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="weight-loss">Weight Loss</option>
+            <option value="muscle-gain">Muscle Gain</option>
+            <option value="endurance">Endurance</option>
+            <option value="flexibility">Flexibility</option>
+            <option value="general-fitness">General Fitness</option>
+          </select>
+        </div>
+
+        <div className="text-sm text-gray-600">
+          <p>This will help us personalize your workout recommendations and track your progress effectively.</p>
+        </div>
+      </div>
+
+      {error && (
+        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-red-600 text-sm">{error}</p>
+        </div>
+      )}
     </div>
   );
 };

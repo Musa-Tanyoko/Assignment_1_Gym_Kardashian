@@ -57,7 +57,7 @@ const Homepage: React.FC<HomepageProps> = ({ onNavigate }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-              Keep Up With Your
+              Keeping Up With Your
               <span className="block bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
                 Fitness Goals
               </span>
@@ -148,7 +148,7 @@ const Homepage: React.FC<HomepageProps> = ({ onNavigate }) => {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Socialite Growth System</h3>
               <p className="text-gray-600">
-                Watch your socialite grow, evolve, and become more fabulous. More socialites mean 
+                Watch your socialite grow, evolve, and become more fabulous. More fame means 
                 more motivation to stay active!
               </p>
             </div>
