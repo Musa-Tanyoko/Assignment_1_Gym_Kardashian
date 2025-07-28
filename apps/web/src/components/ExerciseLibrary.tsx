@@ -1,5 +1,8 @@
 // import React from 'react';
 import { Clock, Target, Zap, Heart } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Badge } from './ui/badge';
 
 const ExerciseLibrary = () => {
   const exercises = [
@@ -141,101 +144,154 @@ const ExerciseLibrary = () => {
     }
   ];
 
-
-
-
   type Difficulty =
     | 'Beginner'
     | 'Intermediate'
     | 'Advanced';
 
-  const getDifficultyColor = (difficulty: Difficulty | string): string => {
+  const getDifficultyVariant = (difficulty: Difficulty | string): "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info" => {
     switch (difficulty) {
-      case 'Beginner': return 'bg-green-100 text-green-800';
-      case 'Intermediate': return 'bg-yellow-100 text-yellow-800';
-      case 'Advanced': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'Beginner': return 'success';
+      case 'Intermediate': return 'warning';
+      case 'Advanced': return 'destructive';
+      default: return 'default';
     }
   };
 
-  const getCategoryColor = (category: string) => {
+  const getCategoryVariant = (category: string): "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info" => {
     switch (category) {
-      case 'Upper Body': return 'bg-blue-100 text-blue-800';
-      case 'Lower Body': return 'bg-purple-100 text-purple-800';
-      case 'Core': return 'bg-emerald-100 text-emerald-800';
-      case 'Cardio': return 'bg-orange-100 text-orange-800';
-      case 'Full Body': return 'bg-pink-100 text-pink-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'Upper Body': return 'info';
+      case 'Lower Body': return 'secondary';
+      case 'Core': return 'success';
+      case 'Cardio': return 'warning';
+      case 'Full Body': return 'default';
+      default: return 'default';
+    }
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5
+      }
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
+    <motion.div 
+      className="space-y-6"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      <motion.div 
+        className="text-center mb-8"
+        variants={itemVariants}
+      >
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Exercise Library</h2>
         <p className="text-gray-600 max-w-2xl mx-auto">
           Master these fabulous exercises to keep your pets happy and your body goals on track
         </p>
-      </div>
+      </motion.div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {exercises.map(exercise => (
-          <div key={exercise.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-300">
-            <div className="p-6">
-              <div className="text-center mb-4">
-                <div className="text-4xl mb-2">{exercise.image}</div>
-                <h3 className="text-xl font-bold text-gray-900">{exercise.name}</h3>
-              </div>
+      <motion.div 
+        className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+        variants={containerVariants}
+      >
+        {exercises.map((exercise, index) => (
+          <motion.div
+            key={exercise.id}
+            variants={itemVariants}
+            whileHover={{ 
+              scale: 1.02,
+              transition: { duration: 0.2 }
+            }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Card className="h-full overflow-hidden hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6">
+                <motion.div 
+                  className="text-center mb-4"
+                  whileHover={{ scale: 1.1 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="text-4xl mb-2">{exercise.image}</div>
+                  <CardTitle className="text-xl">{exercise.name}</CardTitle>
+                </motion.div>
 
-              <div className="flex flex-wrap gap-2 mb-4">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(exercise.category)}`}>
-                  {exercise.category}
-                </span>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(exercise.difficulty)}`}>
-                  {exercise.difficulty}
-                </span>
-              </div>
-
-              <p className="text-gray-600 text-sm mb-4">{exercise.description}</p>
-
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                <div className="text-center">
-                  <Clock className="w-4 h-4 text-gray-400 mx-auto mb-1" />
-                  <div className="text-xs text-gray-600">{exercise.duration}</div>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <Badge variant={getCategoryVariant(exercise.category)}>
+                    {exercise.category}
+                  </Badge>
+                  <Badge variant={getDifficultyVariant(exercise.difficulty)}>
+                    {exercise.difficulty}
+                  </Badge>
                 </div>
-                <div className="text-center">
-                  <Zap className="w-4 h-4 text-gray-400 mx-auto mb-1" />
-                  <div className="text-xs text-gray-600">{exercise.calories} cal</div>
-                </div>
-                <div className="text-center">
-                  <Target className="w-4 h-4 text-gray-400 mx-auto mb-1" />
-                  <div className="text-xs text-gray-600">Targeted</div>
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <h4 className="font-medium text-gray-900 text-sm">Instructions:</h4>
-                <ul className="text-xs text-gray-600 space-y-1">
-                  {exercise.instructions.slice(0, 2).map((instruction, index) => (
-                    <li key={index} className="flex items-start">
-                      <span className="w-1 h-1 bg-emerald-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
-                      {instruction}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+                <p className="text-gray-600 text-sm mb-4">{exercise.description}</p>
 
-              <div className="mt-4 p-3 bg-emerald-50 rounded-lg">
-                <div className="flex items-start">
-                  <Heart className="w-4 h-4 text-emerald-600 mt-0.5 mr-2 flex-shrink-0" />
-                  <p className="text-xs text-emerald-800">{exercise.tips}</p>
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  <div className="text-center">
+                    <Clock className="w-4 h-4 text-gray-400 mx-auto mb-1" />
+                    <div className="text-xs text-gray-600">{exercise.duration}</div>
+                  </div>
+                  <div className="text-center">
+                    <Zap className="w-4 h-4 text-gray-400 mx-auto mb-1" />
+                    <div className="text-xs text-gray-600">{exercise.calories} cal</div>
+                  </div>
+                  <div className="text-center">
+                    <Target className="w-4 h-4 text-gray-400 mx-auto mb-1" />
+                    <div className="text-xs text-gray-600">Targeted</div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </div>
+
+                <div className="space-y-2">
+                  <h4 className="font-medium text-gray-900 text-sm">Instructions:</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    {exercise.instructions.slice(0, 2).map((instruction, index) => (
+                      <motion.li 
+                        key={index} 
+                        className="flex items-start"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <span className="w-1 h-1 bg-emerald-500 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                        {instruction}
+                      </motion.li>
+                    ))}
+                  </ul>
+                </div>
+
+                <motion.div 
+                  className="mt-4 p-3 bg-emerald-50 rounded-lg"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="flex items-start">
+                    <Heart className="w-4 h-4 text-emerald-600 mt-0.5 mr-2 flex-shrink-0" />
+                    <p className="text-xs text-emerald-800">{exercise.tips}</p>
+                  </div>
+                </motion.div>
+              </CardContent>
+            </Card>
+          </motion.div>
         ))}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

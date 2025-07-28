@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, CheckCircle, Circle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from './ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Badge } from './ui/badge';
+import { Progress } from './ui/progress';
 
 interface User {
   uid: string;
@@ -60,6 +65,15 @@ const Calendar: React.FC<CalendarProps> = ({ user }) => {
     };
     return colors[type] || 'bg-gray-400';
   };
+
+  const getWorkoutTypeVariant = (type: string) => {
+    const variants: Record<string, "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info"> = {
+      strength: 'success',
+      cardio: 'info',
+      flexibility: 'secondary'
+    };
+    return variants[type] || 'default';
+  };
   
   const renderCalendarDays = () => {
     const days = [];
@@ -79,8 +93,12 @@ const Calendar: React.FC<CalendarProps> = ({ user }) => {
       const workout = workoutDays[day];
       
       days.push(
-        <div
+        <motion.div
           key={day}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.2, delay: day * 0.01 }}
+          whileHover={{ scale: 1.02 }}
           className={`h-24 border border-gray-200 p-2 hover:bg-gray-50 transition-colors ${
             isToday ? 'bg-blue-50 border-blue-300' : ''
           }`}
@@ -90,25 +108,32 @@ const Calendar: React.FC<CalendarProps> = ({ user }) => {
               {day}
             </span>
             {isToday && (
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <motion.div 
+                className="w-2 h-2 bg-blue-500 rounded-full"
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
             )}
           </div>
           
           {workout && (
-            <div className="mt-2">
-              <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white ${
-                getWorkoutTypeColor(workout.type)
-              }`}>
+            <motion.div 
+              className="mt-2"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <Badge variant={getWorkoutTypeVariant(workout.type)} className="text-xs">
                 {workout.completed ? (
                   <CheckCircle className="w-3 h-3 mr-1" />
                 ) : (
                   <Circle className="w-3 h-3 mr-1" />
                 )}
                 {workout.type}
-              </div>
-            </div>
+              </Badge>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
       );
     }
     
@@ -120,85 +145,133 @@ const Calendar: React.FC<CalendarProps> = ({ user }) => {
   const completionRate = Math.round((completedWorkouts / totalWorkouts) * 100);
   
   return (
-    <div className="space-y-6">
+    <motion.div 
+      className="space-y-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       {/* Calendar Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h3 className="text-xl font-bold text-gray-900">
-            {monthNames[month]} {year}
-          </h3>
-          <p className="text-gray-600">
-            {user?.workoutsPerWeek || 3} workouts per week recommended
-          </p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => navigateMonth(-1)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5 text-gray-600" />
-          </button>
-          <button
-            onClick={() => navigateMonth(1)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <ChevronRight className="w-5 h-5 text-gray-600" />
-          </button>
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle className="text-xl">
+                {monthNames[month]} {year}
+              </CardTitle>
+              <p className="text-gray-600">
+                {user?.workoutsPerWeek || 3} workouts per week recommended
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => navigateMonth(-1)}
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => navigateMonth(1)}
+              >
+                <ChevronRight className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
       
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 text-center">
-          <div className="text-2xl font-bold text-emerald-600">{completedWorkouts}</div>
-          <div className="text-sm text-gray-600">Completed</div>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 text-center">
-          <div className="text-2xl font-bold text-blue-600">{totalWorkouts - completedWorkouts}</div>
-          <div className="text-sm text-gray-600">Remaining</div>
-        </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 text-center">
-          <div className="text-2xl font-bold text-purple-600">{completionRate}%</div>
-          <div className="text-sm text-gray-600">Success Rate</div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <Card className="text-center">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-emerald-600">{completedWorkouts}</div>
+              <div className="text-sm text-gray-600">Completed</div>
+            </CardContent>
+          </Card>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <Card className="text-center">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-blue-600">{totalWorkouts - completedWorkouts}</div>
+              <div className="text-sm text-gray-600">Remaining</div>
+            </CardContent>
+          </Card>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <Card className="text-center">
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-purple-600">{completionRate}%</div>
+              <div className="text-sm text-gray-600">Success Rate</div>
+              <Progress value={completionRate} className="mt-2" />
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
       
       {/* Calendar Grid */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        {/* Week day headers */}
-        <div className="grid grid-cols-7 bg-gray-50">
-          {weekDays.map(day => (
-            <div key={day} className="p-3 text-center text-sm font-medium text-gray-700">
-              {day}
-            </div>
-          ))}
-        </div>
-        
-        {/* Calendar days */}
-        <div className="grid grid-cols-7">
-          {renderCalendarDays()}
-        </div>
-      </div>
+      <Card>
+        <CardContent className="p-0">
+          {/* Week day headers */}
+          <div className="grid grid-cols-7 bg-gray-50">
+            {weekDays.map(day => (
+              <div key={day} className="p-3 text-center text-sm font-medium text-gray-700">
+                {day}
+              </div>
+            ))}
+          </div>
+          
+          {/* Calendar days */}
+          <motion.div 
+            className="grid grid-cols-7"
+            key={`${year}-${month}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            {renderCalendarDays()}
+          </motion.div>
+        </CardContent>
+      </Card>
       
       {/* Legend */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <h4 className="font-medium text-gray-900 mb-3">Workout Types</h4>
-        <div className="flex flex-wrap gap-4">
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-emerald-500 rounded-full mr-2"></div>
-            <span className="text-sm text-gray-600">Strength Training</span>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Workout Types</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-emerald-500 rounded-full mr-2"></div>
+              <span className="text-sm text-gray-600">Strength Training</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+              <span className="text-sm text-gray-600">Cardio</span>
+            </div>
+            <div className="flex items-center">
+              <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+              <span className="text-sm text-gray-600">Flexibility</span>
+            </div>
           </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-            <span className="text-sm text-gray-600">Cardio</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
-            <span className="text-sm text-gray-600">Flexibility</span>
-          </div>
-        </div>
-      </div>
-    </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
 

@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Play, Pause, SkipForward, X, Trophy } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ProgressiveWorkout, calculateProgressiveWorkout, SocialiteStats } from '../types/socialite';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Progress } from './ui/progress';
+import { Badge } from './ui/badge';
 
 interface WorkoutTimerProps {
   user: { id: number; name: string; level: number; fame: number };
@@ -128,136 +133,236 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({ user, onComplete, onClose, 
 
   if (showCompletion) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl p-8 max-w-md w-full text-center">
-          <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Workout Complete!</h2>
-          <div className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white rounded-lg p-4 mb-6">
-            <div className="text-3xl font-bold mb-2">+{earnedCredits} Credits</div>
-            <p className="text-emerald-100">Great job! Your socialite is getting pampered!</p>
-          </div>
-          <div className="space-y-2 text-sm text-gray-600 mb-6">
-            <p>Exercises completed: {completedExercises + 1}</p>
-            <p>Difficulty level: {progressiveWorkout?.difficulty || calculatedWorkout.difficulty}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors"
-          >
-            Continue
-          </button>
-        </div>
-      </div>
+      <motion.div 
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <motion.div 
+          className="max-w-md w-full"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        >
+          <Card>
+            <CardContent className="p-8 text-center">
+              <motion.div 
+                className="text-6xl mb-4"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring" }}
+              >
+                🎉
+              </motion.div>
+              <motion.h2 
+                className="text-2xl font-bold text-gray-900 mb-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                Workout Complete!
+              </motion.h2>
+              <motion.div 
+                className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white rounded-lg p-4 mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <div className="text-3xl font-bold mb-2">+{earnedCredits} Credits</div>
+                <p className="text-emerald-100">Great job! Your socialite is getting pampered!</p>
+              </motion.div>
+              <motion.div 
+                className="space-y-2 text-sm text-gray-600 mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <p>Exercises completed: {completedExercises + 1}</p>
+                <p>Difficulty level: {progressiveWorkout?.difficulty || calculatedWorkout.difficulty}</p>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+              >
+                <Button
+                  variant="gradient"
+                  size="lg"
+                  onClick={onClose}
+                  className="w-full"
+                >
+                  Continue
+                </Button>
+              </motion.div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
     );
   }
 
   const currentExerciseData = exercises[currentExercise];
   if (!currentExerciseData) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl p-8 max-w-md w-full text-center">
-          <p className="text-gray-600">No exercises available</p>
-          <button
-            onClick={onClose}
-            className="mt-4 bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
-          >
-            Close
-          </button>
-        </div>
-      </div>
+      <motion.div 
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <Card className="max-w-md w-full">
+          <CardContent className="p-8 text-center">
+            <p className="text-gray-600">No exercises available</p>
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="mt-4"
+            >
+              Close
+            </Button>
+          </CardContent>
+        </Card>
+      </motion.div>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl p-8 max-w-md w-full">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Workout Timer</h2>
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Progress */}
-        <div className="mb-6">
-          <div className="flex justify-between text-sm text-gray-600 mb-2">
-            <span>Exercise {currentExercise + 1} of {exercises.length}</span>
-            <span>{Math.round(((currentExercise + 1) / exercises.length) * 100)}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-emerald-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${((currentExercise + 1) / exercises.length) * 100}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Current Exercise */}
-        <div className="text-center mb-6">
-          <div className="text-4xl mb-4">🏋️‍♀️</div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">
-            {isResting ? 'Rest Period' : currentExerciseData.name}
-          </h3>
-          {!isResting && (
-            <p className="text-gray-600 text-sm mb-4">{currentExerciseData.description}</p>
-          )}
-          
-          {/* Timer */}
-          <div className="text-6xl font-bold text-emerald-600 mb-4">
-            {formatTime(timeLeft)}
-          </div>
-          
-          {isResting && (
-            <p className="text-gray-500 text-sm">Take a breather, next exercise coming up!</p>
-          )}
-        </div>
-
-        {/* Controls */}
-        <div className="flex space-x-4">
-          <button
-            onClick={toggleTimer}
-            className="flex-1 bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center"
-          >
-            {isActive ? <Pause className="w-5 h-5 mr-2" /> : <Play className="w-5 h-5 mr-2" />}
-            {isActive ? 'Pause' : 'Start'}
-          </button>
-          <button
-            onClick={skipExercise}
-            className="px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center"
-          >
-            <SkipForward className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Exercise Info */}
-        {!isResting && (
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-gray-500">Sets:</span>
-                <span className="font-medium ml-2">{currentExerciseData.baseSets}</span>
-              </div>
-              <div>
-                <span className="text-gray-500">Reps:</span>
-                <span className="font-medium ml-2">{currentExerciseData.baseReps}</span>
-              </div>
-              <div>
-                <span className="text-gray-500">Duration:</span>
-                <span className="font-medium ml-2">{currentExerciseData.baseDuration}s</span>
-              </div>
-              <div>
-                <span className="text-gray-500">Reward:</span>
-                <span className="font-medium ml-2 text-emerald-600">+{currentExerciseData.creditReward}c</span>
-              </div>
+    <motion.div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div 
+        className="max-w-md w-full"
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+      >
+        <Card>
+          <CardContent className="p-8">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <CardTitle className="text-2xl">Workout Timer</CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+              >
+                <X className="w-5 h-5" />
+              </Button>
             </div>
-          </div>
-        )}
-      </div>
-    </div>
+
+            {/* Progress */}
+            <motion.div 
+              className="mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <div className="flex justify-between text-sm text-gray-600 mb-2">
+                <span>Exercise {currentExercise + 1} of {exercises.length}</span>
+                <span>{Math.round(((currentExercise + 1) / exercises.length) * 100)}%</span>
+              </div>
+              <Progress value={((currentExercise + 1) / exercises.length) * 100} className="h-2" />
+            </motion.div>
+
+            {/* Current Exercise */}
+            <motion.div 
+              className="text-center mb-6"
+              key={currentExercise}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.div 
+                className="text-4xl mb-4"
+                whileHover={{ scale: 1.1 }}
+                transition={{ duration: 0.2 }}
+              >
+                🏋️‍♀️
+              </motion.div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                {isResting ? 'Rest Period' : currentExerciseData.name}
+              </h3>
+              {!isResting && (
+                <p className="text-gray-600 text-sm mb-4">{currentExerciseData.description}</p>
+              )}
+              
+              {/* Timer */}
+              <motion.div 
+                className="text-6xl font-bold text-emerald-600 mb-4"
+                key={timeLeft}
+                initial={{ scale: 1.2 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.2 }}
+              >
+                {formatTime(timeLeft)}
+              </motion.div>
+              
+              {isResting && (
+                <p className="text-gray-500 text-sm">Take a breather, next exercise coming up!</p>
+              )}
+            </motion.div>
+
+            {/* Controls */}
+            <motion.div 
+              className="flex space-x-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Button
+                variant="gradient"
+                size="lg"
+                onClick={toggleTimer}
+                className="flex-1"
+              >
+                {isActive ? <Pause className="w-5 h-5 mr-2" /> : <Play className="w-5 h-5 mr-2" />}
+                {isActive ? 'Pause' : 'Start'}
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={skipExercise}
+              >
+                <SkipForward className="w-5 h-5" />
+              </Button>
+            </motion.div>
+
+            {/* Exercise Info */}
+            {!isResting && (
+              <motion.div 
+                className="mt-6 p-4 bg-gray-50 rounded-lg"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-500">Sets:</span>
+                    <span className="font-medium ml-2">{currentExerciseData.baseSets}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Reps:</span>
+                    <span className="font-medium ml-2">{currentExerciseData.baseReps}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Duration:</span>
+                    <span className="font-medium ml-2">{currentExerciseData.baseDuration}s</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Reward:</span>
+                    <Badge variant="success" className="ml-2">
+                      +{currentExerciseData.creditReward}c
+                    </Badge>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+    </motion.div>
   );
 };
 
