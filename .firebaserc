@@ -13,6 +13,16 @@
           "gym-kardioashian-staging"
         ]
       }
+    },
+    "gym-kardashian-58996": {
+      "hosting": {
+        "dev": [
+          "gym-kardashian-58996"
+        ],
+        "staging": [
+          "gym-kardioashian-staging"
+        ]
+      }
     }
   },
   "etags": {}

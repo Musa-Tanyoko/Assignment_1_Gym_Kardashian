@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { app } from '../lib/firebase';
+import { app } from '../lib/firebase'; // TODO: Explicitly type 'app' in ../lib/firebase to avoid implicit 'any' type error
 import { useSignOut } from '../hooks/useTRPCAuth';
 import { useCompleteWorkout, useCreateWorkout } from '../hooks/useTRPCWorkout';
 import { ProfileEditor } from './ProfileEditor';
@@ -10,7 +10,8 @@ import SocialiteCard from './SocialiteCard';
 import { StatsPage } from './StatsPage';
 import Calendar from './Calendar';
 import ExerciseLibrary from './ExerciseLibrary';
-import { ExerciseDifficulty } from '../types/socialite';
+import { ExerciseDifficulty, calculateProgressiveWorkout, SocialiteStats } from '../types/socialite';
+import { FitnessGoalTest } from './FitnessGoalTest';
 import {
   User as UserIcon,
   Target,
@@ -35,6 +36,9 @@ interface User {
   bmi?: number;
   credits?: number;
   workoutsPerWeek?: number;
+  totalWorkouts?: number;
+  fame?: number;
+  experience?: number;
 }
 
 interface DashboardProps {
@@ -54,11 +58,47 @@ const Dashboard: React.FC<DashboardProps> = ({ user: appUser, onNavigate, onSign
   const createWorkout = useCreateWorkout();
   const completeWorkout = useCompleteWorkout();
 
+  // Generate progressive workout based on user data
+  const progressiveWorkout = useMemo(() => {
+    if (!userData) return null;
+    
+    const mockSocialite: SocialiteStats = {
+      id: 1,
+      name: 'Your Socialite',
+      type: 'influencer',
+      level: 1,
+      age: 15,
+      fame: userData.fame || 0,
+      experience: userData.experience || 0,
+      hunger: 85,
+      hygiene: 70,
+      happiness: 90,
+      spa: 40,
+      glam: 50,
+      outfits: 30,
+      photoshoots: 20,
+      trips: 10,
+      posts: 60,
+      wellness: 50,
+      petcare: 70,
+      events: 30,
+      pr: 80,
+      totalWorkouts: userData.totalWorkouts || 0,
+      totalCreditsEarned: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    const workout = calculateProgressiveWorkout(mockSocialite);
+    console.log('Dashboard - Generated progressive workout:', workout);
+    console.log('Dashboard - Total credit reward:', workout.creditReward);
+    return workout;
+  }, [userData]);
+
   useEffect(() => {
     const auth = getAuth(app);
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // Use app user data if available, otherwise create mock data
         setUserData(appUser || {
           uid: user.uid,
           name: user.displayName || 'User',
@@ -68,8 +108,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user: appUser, onNavigate, onSign
           height: 170,
           fitnessGoal: 'general-fitness',
           activityLevel: 'moderately_active',
-          credits: 100,
-          workoutsPerWeek: 3
+          credits: 0,
+          workoutsPerWeek: 3,
+          totalWorkouts: 0,
+          fame: 0,
+          experience: 0
         });
       }
     });
@@ -80,10 +123,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user: appUser, onNavigate, onSign
   const handleSignOut = async () => {
     try {
       await signOut.mutateAsync();
-      onSignOut(); // Call the App.tsx signOut handler
+      onSignOut();
     } catch (error) {
       console.error('Failed to sign out:', error);
-      onSignOut(); // Still call the App.tsx signOut handler even if Firebase signOut fails
+      onSignOut();
     }
   };
 
@@ -93,10 +136,46 @@ const Dashboard: React.FC<DashboardProps> = ({ user: appUser, onNavigate, onSign
   };
 
   const handleCompleteWorkout = async (credits: number, workoutMeta?: { exercises: ExerciseDifficulty[]; totalDuration: number; difficulty: number }) => {
+    console.log('Handle complete workout called with credits:', credits, 'meta:', workoutMeta);
+    
     try {
-      if (!userData?.uid || !workoutMeta) return;
+      // Check authentication first
+      const auth = getAuth(app);
+      const currentUser = auth.currentUser;
+      
+      if (!currentUser) {
+        console.error('No authenticated user found');
+        alert('Please log in again to complete your workout.');
+        return;
+      }
+      
+      if (!userData?.uid) {
+        console.log('Dashboard - Missing userData.uid, returning early');
+        return;
+      }
+      
+      // Verify user ID matches authenticated user
+      if (userData.uid !== currentUser.uid) {
+        console.error('User ID mismatch:', userData.uid, 'vs', currentUser.uid);
+        alert('Authentication error. Please refresh the page and try again.');
+        return;
+      }
+      
+      if (!workoutMeta) {
+        console.log('Dashboard - Missing workoutMeta, using progressive workout data');
+        if (!progressiveWorkout) {
+          console.log('Dashboard - No progressive workout available, returning early');
+          return;
+        }
+        // Use progressive workout data as fallback
+        workoutMeta = {
+          exercises: progressiveWorkout.exercises,
+          totalDuration: progressiveWorkout.totalDuration,
+          difficulty: progressiveWorkout.difficulty
+        };
+      }
 
-      // Create workout
+      console.log('Dashboard - Creating workout...');
       const workout = await createWorkout.mutateAsync({
         userId: userData.uid,
         exercises: workoutMeta.exercises.map(ex => ({
@@ -113,33 +192,83 @@ const Dashboard: React.FC<DashboardProps> = ({ user: appUser, onNavigate, onSign
         experienceReward: Math.floor(credits * 0.3),
         completed: false
       });
+      console.log('Dashboard - Workout created:', workout);
 
-      // Complete workout
-      await completeWorkout.mutateAsync({
-        id: workout.id,
+      console.log('Dashboard - Completing workout...');
+      const result = await completeWorkout.mutateAsync({
         userId: userData.uid,
         earnedCredits: credits,
         earnedFame: Math.floor(credits * 0.5),
         earnedExperience: Math.floor(credits * 0.3),
+        totalDuration: workoutMeta.totalDuration,
+        exercises: workoutMeta.exercises,
       });
+      console.log('Mutation result:', result);
 
-      // Update user credits
-      setUserData(prev => prev ? { ...prev, credits: (prev.credits || 0) + credits } : null);
+      // Update local state with the result from the mutation
+      if (result && result.credits !== undefined) {
+        setUserData(prev => {
+          if (!prev) return null;
+          const updated = { 
+            ...prev, 
+            credits: result.credits,
+            totalWorkouts: (prev.totalWorkouts || 0) + 1,
+            fame: (prev.fame || 0) + Math.floor(credits * 0.5),
+            experience: (prev.experience || 0) + Math.floor(credits * 0.3)
+          };
+          console.log('Dashboard - Updated user data with mutation result:', updated);
+          return updated;
+        });
+      } else {
+        // Fallback: update with calculated values if mutation result is incomplete
+        setUserData(prev => {
+          if (!prev) return null;
+          const updated = { 
+            ...prev, 
+            credits: (prev.credits || 0) + credits,
+            totalWorkouts: (prev.totalWorkouts || 0) + 1,
+            fame: (prev.fame || 0) + Math.floor(credits * 0.5),
+            experience: (prev.experience || 0) + Math.floor(credits * 0.3)
+          };
+          console.log('Dashboard - Updated user data with fallback calculation:', updated);
+          return updated;
+        });
+      }
+
+      // Force refresh user data from Firebase to ensure consistency
+      try {
+        const auth = getAuth(app);
+        const user = auth.currentUser;
+        if (user) {
+          const { getUser } = await import('../lib/firebase-client');
+          const refreshedUser = await getUser(user.uid);
+          console.log('Dashboard - Refreshed user data from Firebase:', refreshedUser);
+          setUserData(refreshedUser);
+        }
+      } catch (error) {
+        console.error('Dashboard - Error refreshing user data:', error);
+      }
 
       setShowWorkoutTimer(false);
       setCurrentView('main');
     } catch (error) {
       console.error('Failed to complete workout:', error);
+      // Show user-friendly error message (you could add a toast notification here)
+      alert('Failed to complete workout. Please try again.');
     }
   };
 
   const handleSocialiteAction = (action: 'feed' | 'clean' | 'play') => {
-    if (!userData || (userData.credits || 0) < 10) return;
+    if (!userData) return;
     
     const costs = { feed: 10, clean: 15, play: 5 };
     const cost = costs[action];
     
-    setUserData(prev => prev ? { ...prev, credits: (prev.credits || 0) - cost } : null);
+    if ((userData.credits || 0) >= cost) {
+      setUserData(prev => prev ? { ...prev, credits: (prev.credits || 0) - cost } : null);
+      // TODO: Implement socialite actions
+      console.log(`Socialite action: ${action}`);
+    }
   };
 
   if (!userData) {
@@ -157,8 +286,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user: appUser, onNavigate, onSign
           id: 1,
           name: userData.name,
           level: 1,
-          fame: 100
+          fame: userData.fame || 0
         }}
+        progressiveWorkout={progressiveWorkout || undefined}
         onComplete={handleCompleteWorkout}
         onClose={() => {
           setShowWorkoutTimer(false);
@@ -218,7 +348,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user: appUser, onNavigate, onSign
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -288,10 +417,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user: appUser, onNavigate, onSign
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-8">
-          {/* Welcome Section */}
           <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-lg p-6 text-white">
             <h2 className="text-2xl font-bold mb-2">
               Welcome back, {userData?.name || userData.email}!
@@ -301,7 +428,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user: appUser, onNavigate, onSign
             </p>
           </div>
 
-          {/* Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <button
               onClick={handleStartWorkout}
@@ -340,31 +466,30 @@ const Dashboard: React.FC<DashboardProps> = ({ user: appUser, onNavigate, onSign
             </button>
           </div>
 
-          {/* Socialite Card */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <SocialiteCard
               socialite={{
                 id: 1,
                 name: 'Your Socialite',
                 type: 'influencer',
-                age: 15,
-                hunger: 85,
-                hygiene: 70,
-                happiness: 90,
-                level: 3,
-                fame: 100,
-                experience: 0,
-                spa: 40,
-                glam: 50,
-                outfits: 30,
-                photoshoots: 20,
-                trips: 10,
-                posts: 60,
-                wellness: 50,
-                petcare: 70,
-                events: 30,
-                pr: 80,
-                totalWorkouts: 0,
+                age: 0,
+                hunger: 0,
+                hygiene: 0,
+                happiness: 0,
+                level: 1,
+                fame: userData.fame || 0,
+                experience: userData.experience || 0,
+                spa: 0,
+                glam: 0,
+                outfits: 0,
+                photoshoots: 0,
+                trips: 0,
+                posts: 0,
+                wellness: 0,
+                petcare: 0,
+                events: 0,
+                pr: 0,
+                totalWorkouts: userData.totalWorkouts || 0,
                 totalCreditsEarned: 0,
                 createdAt: new Date(),
                 updatedAt: new Date()
@@ -372,11 +497,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user: appUser, onNavigate, onSign
               onFeed={() => handleSocialiteAction('feed')}
               onClean={() => handleSocialiteAction('clean')}
               onPlay={() => handleSocialiteAction('play')}
-              credits={userData?.credits ?? 0}
+              credits={userData.credits || 0}
             />
           </div>
 
-          {/* Recent Activity */}
           <div className="bg-white rounded-lg shadow-sm p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <Activity className="w-5 h-5 mr-2 text-emerald-600" />
@@ -384,10 +508,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user: appUser, onNavigate, onSign
             </h3>
             <p className="text-gray-600">No workouts yet. Start your first one!</p>
           </div>
+
+          <FitnessGoalTest />
         </div>
       </main>
 
-      {/* Modals */}
       {showProfileEditor && userData && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <ProfileEditor
@@ -411,7 +536,20 @@ const Dashboard: React.FC<DashboardProps> = ({ user: appUser, onNavigate, onSign
           <FitnessGoalCreator
             userId={userData.uid}
             onClose={() => setShowGoalCreator(false)}
-            onSave={() => setShowGoalCreator(false)}
+            onSave={async () => {
+              setShowGoalCreator(false);
+              // Refresh user data after saving
+              const auth = getAuth(app);
+              const user = auth.currentUser;
+              if (user) {
+                // Force a refresh of user data
+                const updatedUserData = {
+                  ...userData,
+                  fitnessGoal: userData.fitnessGoal
+                };
+                setUserData(updatedUserData);
+              }
+            }}
           />
         </div>
       )}

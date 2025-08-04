@@ -5,14 +5,15 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
+import { useGetCalendarData } from '../hooks/useTRPCWorkout';
 
 interface User {
   uid: string;
   name?: string;
   email?: string;
   workoutsPerWeek?: number;
-  // Add more fields as needed
 }
+
 interface CalendarProps {
   user: User;
 }
@@ -36,23 +37,11 @@ const Calendar: React.FC<CalendarProps> = ({ user }) => {
   
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   
-  // Mock workout data
-  const workoutDays: Record<number, { completed: boolean; type: string }> = {
-    1: { completed: true, type: 'strength' },
-    3: { completed: true, type: 'cardio' },
-    5: { completed: false, type: 'strength' },
-    8: { completed: true, type: 'flexibility' },
-    10: { completed: false, type: 'cardio' },
-    12: { completed: true, type: 'strength' },
-    15: { completed: false, type: 'cardio' },
-    17: { completed: true, type: 'strength' },
-    19: { completed: false, type: 'flexibility' },
-    22: { completed: true, type: 'cardio' },
-    24: { completed: false, type: 'strength' },
-    26: { completed: false, type: 'cardio' },
-    29: { completed: false, type: 'strength' }
-  };
-  
+  const { data: workoutDays = {} } = useGetCalendarData(user.uid, {
+    startDate: new Date(year, month, 1),
+    endDate: new Date(year, month + 1, 0)
+  });
+
   const navigateMonth = (direction: number) => {
     setCurrentDate(new Date(year, month + direction, 1));
   };
@@ -78,12 +67,10 @@ const Calendar: React.FC<CalendarProps> = ({ user }) => {
   const renderCalendarDays = () => {
     const days = [];
     
-    // Empty cells for days before the first day of the month
     for (let i = 0; i < firstDayWeekday; i++) {
       days.push(<div key={`empty-${i}`} className="h-24"></div>);
     }
     
-    // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const isToday = 
         today.getDate() === day && 
@@ -142,7 +129,7 @@ const Calendar: React.FC<CalendarProps> = ({ user }) => {
   
   const completedWorkouts = Object.values(workoutDays).filter(w => w.completed).length;
   const totalWorkouts = Object.keys(workoutDays).length;
-  const completionRate = Math.round((completedWorkouts / totalWorkouts) * 100);
+  const completionRate = totalWorkouts > 0 ? Math.round((completedWorkouts / totalWorkouts) * 100) : 0;
   
   return (
     <motion.div 
@@ -151,7 +138,6 @@ const Calendar: React.FC<CalendarProps> = ({ user }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Calendar Header */}
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
@@ -183,7 +169,6 @@ const Calendar: React.FC<CalendarProps> = ({ user }) => {
         </CardHeader>
       </Card>
       
-      {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -224,10 +209,8 @@ const Calendar: React.FC<CalendarProps> = ({ user }) => {
         </motion.div>
       </div>
       
-      {/* Calendar Grid */}
       <Card>
         <CardContent className="p-0">
-          {/* Week day headers */}
           <div className="grid grid-cols-7 bg-gray-50">
             {weekDays.map(day => (
               <div key={day} className="p-3 text-center text-sm font-medium text-gray-700">
@@ -236,7 +219,6 @@ const Calendar: React.FC<CalendarProps> = ({ user }) => {
             ))}
           </div>
           
-          {/* Calendar days */}
           <motion.div 
             className="grid grid-cols-7"
             key={`${year}-${month}`}
@@ -249,7 +231,6 @@ const Calendar: React.FC<CalendarProps> = ({ user }) => {
         </CardContent>
       </Card>
       
-      {/* Legend */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Workout Types</CardTitle>

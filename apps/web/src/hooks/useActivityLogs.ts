@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { saveActivityLog, getActivityLogs } from '../lib/firebase-client';
 
 export interface ActivityLog {
   id: string;
@@ -16,36 +17,28 @@ export interface ActivityLog {
   };
 }
 
-export const useActivityLogs = () => {
+export const useActivityLogs = (userId: string) => {
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
 
-  // Load activity logs from localStorage on mount
   useEffect(() => {
-    const savedLogs = localStorage.getItem('activityLogs');
-    if (savedLogs) {
-      try {
-        const parsedLogs = JSON.parse(savedLogs).map((log: { timestamp: string; [key: string]: unknown }) => ({
-          ...log,
-          timestamp: new Date(log.timestamp)
-        }));
-        setActivityLogs(parsedLogs);
-      } catch (error) {
-        console.error('Failed to parse activity logs:', error);
-      }
-    }
-  }, []);
+    const loadLogs = async () => {
+      const logs = await getActivityLogs(userId);
+      setActivityLogs(logs);
+    };
+    loadLogs();
+  }, [userId]);
 
-  // Save activity logs to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('activityLogs', JSON.stringify(activityLogs));
+    // Real-time updates can be added here with onSnapshot if needed
   }, [activityLogs]);
 
-  const addActivityLog = (log: Omit<ActivityLog, 'id' | 'timestamp'>) => {
+  const addActivityLog = async (log: Omit<ActivityLog, 'id' | 'timestamp'>) => {
     const newLog: ActivityLog = {
       ...log,
       id: Date.now().toString(),
       timestamp: new Date()
     };
+    await saveActivityLog(userId, newLog);
     setActivityLogs(prev => [newLog, ...prev]);
   };
 
@@ -116,9 +109,9 @@ export const useActivityLogs = () => {
     };
   };
 
-  const clearLogs = () => {
+  const clearLogs = async () => {
+    // Implement clear logic with Firebase if needed
     setActivityLogs([]);
-    localStorage.removeItem('activityLogs');
   };
 
   return {
@@ -133,4 +126,4 @@ export const useActivityLogs = () => {
     getWeeklyStats,
     clearLogs
   };
-}; 
+};

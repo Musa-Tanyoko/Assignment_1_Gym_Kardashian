@@ -104,3 +104,59 @@ export const useDeleteWorkout = () => {
     error: null,
   };
 }; 
+
+export const useGetUserStats = (userId: string) => {
+  const trpcClient = useTRPCContext();
+  const [data, setData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setIsLoading(true);
+        const result = await trpcClient.workout.getStats(userId);
+        setData(result);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (userId) {
+      fetchStats();
+    }
+  }, [userId, trpcClient]);
+
+  return { data, isLoading, error };
+}; 
+
+export const useGetCalendarData = (userId: string, dateRange: { startDate: Date; endDate: Date }) => {
+  const trpcClient = useTRPCContext();
+  const [data, setData] = useState<any>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchCalendarData = async () => {
+      try {
+        setIsLoading(true);
+        // For now, return mock data since we don't have a calendar endpoint
+        // In a real implementation, this would call a tRPC endpoint
+        const mockData = {};
+        setData(mockData);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (userId) {
+      fetchCalendarData();
+    }
+  }, [userId, dateRange, trpcClient]);
+
+  return { data, isLoading, error };
+}; 

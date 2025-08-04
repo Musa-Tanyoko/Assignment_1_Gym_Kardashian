@@ -23,10 +23,12 @@ export const FitnessGoalCreator: React.FC<FitnessGoalCreatorProps> = ({ userId, 
     try {
       setIsLoading(true);
       setError(null);
-      await trpcClient.user.update({
+      console.log('Saving fitness goal:', { uid: userId, fitnessGoal });
+      const result = await trpcClient.user.setFitnessGoal({
         uid: userId,
-        updates: { fitnessGoal },
+        fitnessGoal: fitnessGoal,
       });
+      console.log('Fitness goal saved successfully:', result);
       onSave();
     } catch (err) {
       console.error('Failed to set fitness goal:', err);

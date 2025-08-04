@@ -91,7 +91,7 @@ export const FAME_LEVELS: FameLevel[] = [
     exerciseIntensityMultiplier: 1.0,
     creditMultiplier: 1.0,
     demands: {
-      baseDepletionRate: 2, // % per hour
+      baseDepletionRate: 2,
       luxuryDepletionRate: 1,
       minimumNeeds: 30,
       fameDecayRate: 0.5
@@ -464,4 +464,31 @@ export const checkLevelUp = (socialite: SocialiteStats): FameLevel | null => {
     return nextLevel;
   }
   return null;
-}; 
+};
+
+export const initialSocialite = (userId: string): SocialiteStats => ({
+  id: Date.now(),
+  name: 'Your Socialite',
+  type: 'influencer',
+  level: 1,
+  age: 0,
+  fame: 0,
+  experience: 0,
+  hunger: 100,
+  hygiene: 100,
+  happiness: 100,
+  spa: 0,
+  glam: 0,
+  outfits: 0,
+  photoshoots: 0,
+  trips: 0,
+  posts: 0,
+  wellness: 0,
+  petcare: 0,
+  events: 0,
+  pr: 0,
+  totalWorkouts: 0,
+  totalCreditsEarned: 0,
+  createdAt: new Date(),
+  updatedAt: new Date()
+});

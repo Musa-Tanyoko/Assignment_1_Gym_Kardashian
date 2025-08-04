@@ -76,16 +76,26 @@ const WorkoutTimer: React.FC<WorkoutTimerProps> = ({ user, onComplete, onClose, 
     const bonusCredits = Math.floor(Math.random() * 20); // Random bonus
     const credits = totalCredits + bonusCredits;
     
+    console.log('WorkoutTimer - Exercises:', exercises);
+    console.log('WorkoutTimer - Total credits from exercises:', totalCredits);
+    console.log('WorkoutTimer - Bonus credits:', bonusCredits);
+    console.log('WorkoutTimer - Total credits to award:', credits);
+    console.log('WorkoutTimer - Progressive workout provided:', !!progressiveWorkout);
+    console.log('WorkoutTimer - Calculated workout:', calculatedWorkout);
+    
     setEarnedCredits(credits);
     setShowCompletion(true);
     
     // Pass workout meta to onComplete
-    onComplete(credits, {
+    const workoutMeta = {
       exercises,
       totalDuration: exercises.reduce((sum, ex) => sum + (ex.baseDuration || 0), 0),
       difficulty: progressiveWorkout?.difficulty || calculatedWorkout.difficulty,
-    });
-  }, [exercises, progressiveWorkout?.difficulty, calculatedWorkout.difficulty, onComplete]);
+    };
+    
+    console.log('WorkoutTimer - Calling onComplete with workoutMeta:', workoutMeta);
+    onComplete(credits, workoutMeta);
+  }, [exercises, progressiveWorkout?.difficulty, calculatedWorkout.difficulty, onComplete, progressiveWorkout, calculatedWorkout]);
 
   const handleNextExercise = useCallback(() => {
     if (currentExercise < exercises.length - 1) {

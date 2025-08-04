@@ -1,33 +1,133 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { StatsPage } from '../StatsPage';
-import { trpcClient } from '../../lib/trpc/client';
+import { useGetUserStats } from '../../hooks/useTRPCWorkout';
+import { useGetCurrentUser } from '../../hooks/useTRPCAuth';
 import '@testing-library/jest-dom';
 
-jest.mock('../../lib/trpc/client', () => ({
-  trpcClient: {
-    workout: {
-      getStats: { useQuery: jest.fn() },
-      getCredits: { useQuery: jest.fn() },
-    },
-    user: {
-      importActivityLogs: { useMutation: jest.fn() },
-    },
-  },
+// Mock the hooks
+jest.mock('../../hooks/useTRPCWorkout', () => ({
+  useGetUserStats: jest.fn(),
 }));
 
-describe('StatsPage', () => {
-  it('renders stats and credits', async () => {
-    trpcClient.workout.getStats.useQuery.mockReturnValue({ data: { steps: 1000, exercisesCompleted: 5, streak: 2, sessions: 3, hours: 1.5 } });
-    trpcClient.workout.getCredits.useQuery.mockReturnValue({ data: { credits: 200 } });
-    trpcClient.user.importActivityLogs.useMutation.mockReturnValue({ mutateAsync: jest.fn() });
+jest.mock('../../hooks/useTRPCAuth', () => ({
+  useGetCurrentUser: jest.fn(),
+}));
 
-    render(<StatsPage user={{ uid: 'test-user' }} />);
-    await waitFor(() => expect(screen.getByText(/Credits:/)).toBeInTheDocument());
-    expect(screen.getByText(/Credits: 200/)).toBeInTheDocument();
-    expect(screen.getByText(/steps: 1000/i)).toBeInTheDocument();
-    expect(screen.getByText(/exercisesCompleted: 5/i)).toBeInTheDocument();
-    expect(screen.getByText(/streak: 2/i)).toBeInTheDocument();
-    expect(screen.getByText(/sessions: 3/i)).toBeInTheDocument();
-    expect(screen.getByText(/hours: 1.5/i)).toBeInTheDocument();
+const mockUseGetUserStats = useGetUserStats as jest.MockedFunction<typeof useGetUserStats>;
+const mockUseGetCurrentUser = useGetCurrentUser as jest.MockedFunction<typeof useGetCurrentUser>;
+
+describe('StatsPage', () => {
+  const mockOnClose = jest.fn();
+
+  beforeEach(() => {
+    mockUseGetCurrentUser.mockReturnValue({
+      data: { uid: 'test-user', email: 'test@example.com' },
+      isLoading: false,
+      error: null,
+    });
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('shows loading state when fetching stats', () => {
+    mockUseGetUserStats.mockReturnValue({
+      data: null,
+      isLoading: true,
+      error: null,
+    });
+
+    render(<StatsPage onClose={mockOnClose} />);
+    
+    expect(screen.getByText('Loading your stats...')).toBeInTheDocument();
+  });
+
+  it('shows error state when stats fetch fails', () => {
+    mockUseGetUserStats.mockReturnValue({
+      data: null,
+      isLoading: false,
+      error: new Error('Failed to fetch stats'),
+    });
+
+    render(<StatsPage onClose={mockOnClose} />);
+    
+    expect(screen.getByText('Error loading stats')).toBeInTheDocument();
+    expect(screen.getByText('Please try again later.')).toBeInTheDocument();
+  });
+
+  it('shows new user state when no workouts completed', () => {
+    mockUseGetUserStats.mockReturnValue({
+      data: {
+        sessions: 0,
+        exercisesCompleted: 0,
+        streak: 0,
+        hours: 0,
+        totalCalories: 0,
+        averageWorkoutDuration: 0,
+        lastWorkoutDate: null,
+        weeklyProgress: [0, 0, 0, 0, 0, 0, 0],
+        monthlyProgress: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    render(<StatsPage onClose={mockOnClose} />);
+    
+    expect(screen.getByText('No workout data yet!')).toBeInTheDocument();
+    expect(screen.getByText('Complete your first workout to start tracking your fitness journey and see your progress here.')).toBeInTheDocument();
+    expect(screen.getByText('0')).toBeInTheDocument(); // Should show 0 workouts
+  });
+
+  it('shows stats for users with workout history', () => {
+    mockUseGetUserStats.mockReturnValue({
+      data: {
+        sessions: 5,
+        exercisesCompleted: 25,
+        streak: 3,
+        hours: 2.5,
+        totalCalories: 1250,
+        averageWorkoutDuration: 30,
+        lastWorkoutDate: '2024-01-15T10:00:00Z',
+        weeklyProgress: [0, 0, 0, 0, 0, 0, 0],
+        monthlyProgress: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    render(<StatsPage onClose={mockOnClose} />);
+    
+    expect(screen.getByText('Your Fitness Stats')).toBeInTheDocument();
+    expect(screen.getByText('5')).toBeInTheDocument(); // Total workouts
+    expect(screen.getByText('3 days')).toBeInTheDocument(); // Current streak
+    expect(screen.getByText('1,250')).toBeInTheDocument(); // Calories burned
+    expect(screen.getByText('30 min')).toBeInTheDocument(); // Average duration
+  });
+
+  it('calls onClose when close button is clicked', () => {
+    mockUseGetUserStats.mockReturnValue({
+      data: {
+        sessions: 0,
+        exercisesCompleted: 0,
+        streak: 0,
+        hours: 0,
+        totalCalories: 0,
+        averageWorkoutDuration: 0,
+        lastWorkoutDate: null,
+        weeklyProgress: [0, 0, 0, 0, 0, 0, 0],
+        monthlyProgress: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      },
+      isLoading: false,
+      error: null,
+    });
+
+    render(<StatsPage onClose={mockOnClose} />);
+    
+    const closeButton = screen.getByRole('button', { name: /close/i });
+    closeButton.click();
+    
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 });

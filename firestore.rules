@@ -1,8 +1,33 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Allow users to read and write their own user data
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow users to read and write their own socialite data
+    match /socialites/{socialiteId} {
+      allow read, write: if request.auth != null && 
+        (socialiteId.matches(request.auth.uid + '_.*') || 
+         resource.data.userId == request.auth.uid);
+    }
+    
+    // Allow users to read and write their own activity logs
+    match /users/{userId}/activityLogs/{logId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow users to read and write their own workout data
+    match /workouts/{workoutId} {
+      allow read, write: if request.auth != null && 
+        (resource.data.userId == request.auth.uid || 
+         request.resource.data.userId == request.auth.uid);
+    }
+    
+    // Default rule - deny all other access
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

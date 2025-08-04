@@ -18,6 +18,9 @@ interface User {
   bmi?: number;
   credits?: number;
   workoutsPerWeek?: number;
+  totalWorkouts?: number;
+  fame?: number;
+  experience?: number;
 }
 
 function App() {
@@ -25,7 +28,13 @@ function App() {
   const [user, setUser] = useState<User | null>(null);
 
   const handleAuth = (userData: User) => {
-    setUser(userData);
+    setUser({
+      ...userData,
+      credits: 0,
+      totalWorkouts: 0,
+      fame: 0,
+      experience: 0
+    });
     setCurrentPage('dashboard');
   };
 

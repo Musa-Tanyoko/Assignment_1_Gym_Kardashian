@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Sparkles, TrendingUp, Star, Target, Heart, Camera, ShoppingBag } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { SocialiteStats, getCurrentFameLevel, getNextFameLevel } from '../types/socialite';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Progress } from './ui/progress';
 import { Badge } from './ui/badge';
@@ -79,7 +79,6 @@ const SocialiteCard: React.FC<SocialiteCardProps> = ({ socialite, onFeed, onClea
                 {currentFameLevel.name} • Level {socialite.level} • Age {Math.floor(socialite.age)} days
               </p>
               
-              {/* Fame Progress */}
               <motion.div 
                 className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-3"
                 initial={{ opacity: 0, y: 10 }}
@@ -105,7 +104,6 @@ const SocialiteCard: React.FC<SocialiteCardProps> = ({ socialite, onFeed, onClea
                 )}
               </motion.div>
 
-              {/* Experience Stats */}
               <motion.div 
                 className="grid grid-cols-2 gap-2 text-xs"
                 initial={{ opacity: 0, y: 10 }}
@@ -128,7 +126,6 @@ const SocialiteCard: React.FC<SocialiteCardProps> = ({ socialite, onFeed, onClea
             </div>
           </motion.div>
           
-          {/* Socialite Stats */}
           <motion.div 
             className="space-y-4 mb-6"
             initial={{ opacity: 0, y: 20 }}
@@ -173,7 +170,6 @@ const SocialiteCard: React.FC<SocialiteCardProps> = ({ socialite, onFeed, onClea
             </div>
           </motion.div>
           
-          {/* Socialite Actions */}
           <motion.div 
             className="grid grid-cols-3 gap-2"
             initial={{ opacity: 0, y: 20 }}
@@ -226,4 +222,4 @@ const SocialiteCard: React.FC<SocialiteCardProps> = ({ socialite, onFeed, onClea
   );
 };
 
-export default SocialiteCard; 
+export default SocialiteCard;
