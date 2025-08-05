@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { saveActivityLog, getActivityLogs } from '../lib/firebase-client';
+import { saveActivityLog, getActivityLogs, deleteAllActivityLogs } from '../lib/firebase-client';
 
 export interface ActivityLog {
   id: string;
@@ -20,12 +20,17 @@ export interface ActivityLog {
 export const useActivityLogs = (userId: string) => {
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
 
+  const loadLogs = async () => {
+    console.log('useActivityLogs - Loading logs for userId:', userId);
+    const logs = await getActivityLogs(userId);
+    console.log('useActivityLogs - Loaded logs:', logs);
+    setActivityLogs(logs);
+  };
+
   useEffect(() => {
-    const loadLogs = async () => {
-      const logs = await getActivityLogs(userId);
-      setActivityLogs(logs);
-    };
-    loadLogs();
+    if (userId) {
+      loadLogs();
+    }
   }, [userId]);
 
   useEffect(() => {
@@ -76,7 +81,28 @@ export const useActivityLogs = (userId: string) => {
   };
 
   const getRecentLogs = (limit: number = 10) => {
-    return activityLogs.slice(0, limit);
+    return activityLogs.slice(0, limit).map(log => ({
+      ...log,
+      time: formatRelativeTime(log.timestamp)
+    }));
+  };
+
+  const formatRelativeTime = (timestamp: Date): string => {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - timestamp.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) {
+      return 'Just now';
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    } else {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days} day${days > 1 ? 's' : ''} ago`;
+    }
   };
 
   const getLogsByType = (type: ActivityLog['type']) => {
@@ -114,6 +140,12 @@ export const useActivityLogs = (userId: string) => {
     setActivityLogs([]);
   };
 
+  const refreshLogs = async () => {
+    await loadLogs();
+  };
+
+
+
   return {
     activityLogs,
     addActivityLog,
@@ -124,6 +156,7 @@ export const useActivityLogs = (userId: string) => {
     getLogsByType,
     getTodayLogs,
     getWeeklyStats,
-    clearLogs
+    clearLogs,
+    refreshLogs
   };
 };

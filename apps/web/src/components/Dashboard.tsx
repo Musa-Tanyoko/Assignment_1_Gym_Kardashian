@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { app } from '../lib/firebase'; // TODO: Explicitly type 'app' in ../lib/firebase to avoid implicit 'any' type error
 import { useSignOut } from '../hooks/useTRPCAuth';
-import { useCompleteWorkout, useCreateWorkout } from '../hooks/useTRPCWorkout';
+import { useCompleteWorkout } from '../hooks/useTRPCWorkout';
+import { useActivityLogs } from '../hooks/useActivityLogs';
 import { ProfileEditor } from './ProfileEditor';
 import { FitnessGoalCreator } from './FitnessGoalCreator';
 import WorkoutTimer from './WorkoutTimer';
@@ -11,7 +12,6 @@ import { StatsPage } from './StatsPage';
 import Calendar from './Calendar';
 import ExerciseLibrary from './ExerciseLibrary';
 import { ExerciseDifficulty, calculateProgressiveWorkout, SocialiteStats } from '../types/socialite';
-import { FitnessGoalTest } from './FitnessGoalTest';
 import {
   User as UserIcon,
   Target,
@@ -53,47 +53,51 @@ const Dashboard: React.FC<DashboardProps> = ({ user: appUser, onNavigate, onSign
   const [showWorkoutTimer, setShowWorkoutTimer] = useState(false);
   const [currentView, setCurrentView] = useState<'main' | 'workout' | 'stats' | 'calendar' | 'exercises'>('main');
   const [userData, setUserData] = useState<User | null>(null);
+  const [socialiteData, setSocialiteData] = useState<SocialiteStats>({
+    id: 1,
+    name: 'Your Socialite',
+    type: 'influencer',
+    level: 1,
+    age: 15,
+    fame: 0,
+    experience: 0,
+    hunger: 85,
+    hygiene: 70,
+    happiness: 90,
+    spa: 40,
+    glam: 50,
+    outfits: 30,
+    photoshoots: 20,
+    trips: 10,
+    posts: 60,
+    wellness: 50,
+    petcare: 70,
+    events: 30,
+    pr: 80,
+    totalWorkouts: 0,
+    totalCreditsEarned: 0,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  });
 
   const signOut = useSignOut();
-  const createWorkout = useCreateWorkout();
   const completeWorkout = useCompleteWorkout();
+  const { activityLogs, getRecentLogs, refreshLogs, clearLogs, addActivityLog } = useActivityLogs(userData?.uid || '');
 
   // Generate progressive workout based on user data
   const progressiveWorkout = useMemo(() => {
     if (!userData) return null;
     
-    const mockSocialite: SocialiteStats = {
-      id: 1,
-      name: 'Your Socialite',
-      type: 'influencer',
-      level: 1,
-      age: 15,
+    const workout = calculateProgressiveWorkout({
+      ...socialiteData,
       fame: userData.fame || 0,
       experience: userData.experience || 0,
-      hunger: 85,
-      hygiene: 70,
-      happiness: 90,
-      spa: 40,
-      glam: 50,
-      outfits: 30,
-      photoshoots: 20,
-      trips: 10,
-      posts: 60,
-      wellness: 50,
-      petcare: 70,
-      events: 30,
-      pr: 80,
-      totalWorkouts: userData.totalWorkouts || 0,
-      totalCreditsEarned: 0,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    const workout = calculateProgressiveWorkout(mockSocialite);
+      totalWorkouts: userData.totalWorkouts || 0
+    });
     console.log('Dashboard - Generated progressive workout:', workout);
     console.log('Dashboard - Total credit reward:', workout.creditReward);
     return workout;
-  }, [userData]);
+  }, [userData, socialiteData]);
 
   useEffect(() => {
     const auth = getAuth(app);
@@ -175,25 +179,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user: appUser, onNavigate, onSign
         };
       }
 
-      console.log('Dashboard - Creating workout...');
-      const workout = await createWorkout.mutateAsync({
-        userId: userData.uid,
-        exercises: workoutMeta.exercises.map(ex => ({
-          name: ex.name,
-          sets: ex.baseSets,
-          reps: typeof ex.baseReps === 'string' ? parseInt(ex.baseReps) : ex.baseReps,
-          duration: ex.baseDuration,
-          completed: false
-        })),
-        totalDuration: workoutMeta.totalDuration,
-        difficulty: workoutMeta.difficulty,
-        creditReward: credits,
-        fameReward: Math.floor(credits * 0.5),
-        experienceReward: Math.floor(credits * 0.3),
-        completed: false
-      });
-      console.log('Dashboard - Workout created:', workout);
-
       console.log('Dashboard - Completing workout...');
       const result = await completeWorkout.mutateAsync({
         userId: userData.uid,
@@ -249,6 +234,32 @@ const Dashboard: React.FC<DashboardProps> = ({ user: appUser, onNavigate, onSign
         console.error('Dashboard - Error refreshing user data:', error);
       }
 
+      // Create activity log entry for the completed workout
+      try {
+        // Add workout log directly using the existing hook
+        await addActivityLog({
+          type: 'workout',
+          title: 'Progressive Workout Completed',
+          time: 'Just now',
+          duration: `${workoutMeta.totalDuration} min`,
+          calories: credits,
+          metadata: { 
+            exercises: workoutMeta.exercises.map(ex => ex.name)
+          }
+        });
+        console.log('Dashboard - Created activity log for completed workout');
+      } catch (error) {
+        console.error('Dashboard - Error creating activity log:', error);
+      }
+
+      // Refresh activity logs to show the new workout
+      try {
+        await refreshLogs();
+        console.log('Dashboard - Refreshed activity logs');
+      } catch (error) {
+        console.error('Dashboard - Error refreshing activity logs:', error);
+      }
+
       setShowWorkoutTimer(false);
       setCurrentView('main');
     } catch (error) {
@@ -266,8 +277,29 @@ const Dashboard: React.FC<DashboardProps> = ({ user: appUser, onNavigate, onSign
     
     if ((userData.credits || 0) >= cost) {
       setUserData(prev => prev ? { ...prev, credits: (prev.credits || 0) - cost } : null);
-      // TODO: Implement socialite actions
-      console.log(`Socialite action: ${action}`);
+      
+      // Update socialite data based on action
+      setSocialiteData(prev => {
+        const updates: Partial<SocialiteStats> = {};
+        
+        switch (action) {
+          case 'feed':
+            updates.wellness = Math.min(100, prev.wellness + 15);
+            updates.hunger = Math.min(100, prev.hunger + 10);
+            break;
+          case 'clean':
+            updates.hygiene = Math.min(100, prev.hygiene + 20);
+            updates.glam = Math.min(100, prev.glam + 10);
+            break;
+          case 'play':
+            updates.happiness = Math.min(100, prev.happiness + 15);
+            updates.petcare = Math.min(100, prev.petcare + 10);
+            break;
+        }
+        
+        console.log(`Socialite action: ${action}`, updates);
+        return { ...prev, ...updates, updatedAt: new Date() };
+      });
     }
   };
 
@@ -301,7 +333,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user: appUser, onNavigate, onSign
   if (currentView === 'stats') {
     return (
       <div className="min-h-screen bg-gray-50">
-        <StatsPage onClose={() => setCurrentView('main')} />
+        <StatsPage onClose={() => setCurrentView('main')} userId={userData?.uid} />
       </div>
     );
   }
@@ -467,49 +499,89 @@ const Dashboard: React.FC<DashboardProps> = ({ user: appUser, onNavigate, onSign
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Column: SocialiteCard */}
             <SocialiteCard
               socialite={{
-                id: 1,
-                name: 'Your Socialite',
-                type: 'influencer',
-                age: 0,
-                hunger: 0,
-                hygiene: 0,
-                happiness: 0,
-                level: 1,
+                ...socialiteData,
                 fame: userData.fame || 0,
                 experience: userData.experience || 0,
-                spa: 0,
-                glam: 0,
-                outfits: 0,
-                photoshoots: 0,
-                trips: 0,
-                posts: 0,
-                wellness: 0,
-                petcare: 0,
-                events: 0,
-                pr: 0,
-                totalWorkouts: userData.totalWorkouts || 0,
-                totalCreditsEarned: 0,
-                createdAt: new Date(),
-                updatedAt: new Date()
+                totalWorkouts: userData.totalWorkouts || 0
               }}
               onFeed={() => handleSocialiteAction('feed')}
               onClean={() => handleSocialiteAction('clean')}
               onPlay={() => handleSocialiteAction('play')}
               credits={userData.credits || 0}
             />
-          </div>
+            
+            {/* Right Column: Recent Workouts and Fitness Goal Test */}
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg shadow-sm p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <Activity className="w-5 h-5 mr-2 text-emerald-600" />
+                    Recent Workouts
+                  </h3>
+                  {/* Temporary development buttons */}
+                  {process.env.NODE_ENV === 'development' && (
+                    <div className="flex space-x-2">
+                      {activityLogs.length > 0 && (
+                        <button
+                          onClick={async () => {
+                            if (confirm('Clear all workout logs? This will remove all stored workout data.')) {
+                              await clearLogs();
+                              await refreshLogs();
+                            }
+                          }}
+                          className="text-xs text-red-600 hover:text-red-800 px-2 py-1 border border-red-200 rounded hover:bg-red-50"
+                        >
+                          Clear Logs
+                        </button>
+                      )}
+                      <button
+                        onClick={async () => {
+                          await addActivityLog({
+                            type: 'workout',
+                            title: 'Test Workout',
+                            time: 'Just now',
+                            duration: '30 min',
+                            calories: 150,
+                            metadata: { exercises: ['Push-ups', 'Squats'] }
+                          });
+                          await refreshLogs();
+                        }}
+                        className="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 border border-blue-200 rounded hover:bg-blue-50"
+                      >
+                        Add Test Log
+                      </button>
+                    </div>
+                  )}
+                </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <Activity className="w-5 h-5 mr-2 text-emerald-600" />
-              Recent Workouts
-            </h3>
-            <p className="text-gray-600">No workouts yet. Start your first one!</p>
+                {activityLogs.length > 0 ? (
+                  <div className="space-y-3">
+                    {/* Filter out duplicate logs based on title, duration, and calories */}
+                    {getRecentLogs(5).filter((log, index, self) =>
+                      index === self.findIndex((t) => (
+                        t.title === log.title && 
+                        t.duration === log.duration && 
+                        t.calories === log.calories
+                      ))
+                    ).map((log, index) => (
+                      <div key={log.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-800">{log.title}</p>
+                          <p className="text-sm text-gray-600">{log.duration} • {log.calories} calories</p>
+                        </div>
+                        <div className="text-sm text-gray-500">{log.time}</div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-600">No workouts yet. Start your first one!</p>
+                )}
+              </div>
+            </div>
           </div>
-
-          <FitnessGoalTest />
         </div>
       </main>
 

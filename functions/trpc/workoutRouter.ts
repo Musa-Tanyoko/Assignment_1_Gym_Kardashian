@@ -40,13 +40,38 @@ export const workoutRouter = router({
       earnedExperience: z.number().optional(),
     }))
     .mutation(async ({ input }) => {
-      // Mark workout as completed
-      await updateWorkout(input.id, { completed: true, creditsEarned: input.earnedCredits });
-      // Award credits to user
-      await updateUser(input.userId, {
-        credits: (await getCreditsByUserId(input.userId)).credits + input.earnedCredits
-      });
-      return { success: true, creditsAwarded: input.earnedCredits };
+      try {
+        console.log('Backend: Completing workout with ID:', input.id, 'for user:', input.userId);
+        console.log('Backend: Earned credits:', input.earnedCredits);
+        
+        // Mark workout as completed
+        await updateWorkout(input.id, { 
+          completed: true, 
+          creditsEarned: input.earnedCredits,
+          completedAt: new Date().toISOString()
+        });
+        console.log('Backend: Workout marked as completed');
+        
+        // Get current user credits
+        const currentCredits = (await getCreditsByUserId(input.userId)).credits;
+        const newCredits = currentCredits + input.earnedCredits;
+        console.log('Backend: Current credits:', currentCredits, 'New credits:', newCredits);
+        
+        // Award credits to user
+        await updateUser(input.userId, {
+          credits: newCredits,
+          totalWorkouts: (await getUserStats(input.userId)).totalWorkouts + 1,
+          fame: (await getUserStats(input.userId)).fame + (input.earnedFame || 0),
+          experience: (await getUserStats(input.userId)).experience + (input.earnedExperience || 0),
+          lastUpdated: new Date().toISOString()
+        });
+        console.log('Backend: User credits updated successfully');
+        
+        return { success: true, creditsAwarded: input.earnedCredits };
+      } catch (error) {
+        console.error('Backend: Error completing workout:', error);
+        throw error;
+      }
     }),
 
   create: protectedProcedure

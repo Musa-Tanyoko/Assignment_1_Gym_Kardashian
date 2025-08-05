@@ -60,15 +60,78 @@ export const getSocialite = async (userId: string, socialiteId: number): Promise
 
 export const saveActivityLog = async (userId: string, log: ActivityLog) => {
   const logsRef = collection(db, 'users', userId, 'activityLogs');
-  await setDoc(doc(logsRef), {
+  const logDoc = doc(logsRef, log.id); // Use the provided log.id as document ID
+  const logData = {
     ...log,
-    timestamp: serverTimestamp()
-  });
+    timestamp: new Date() // Use regular Date instead of serverTimestamp for better querying
+  };
+  await setDoc(logDoc, logData);
 };
 
 export const getActivityLogs = async (userId: string): Promise<ActivityLog[]> => {
+  console.log('getActivityLogs - Fetching logs for userId:', userId);
   const logsRef = collection(db, 'users', userId, 'activityLogs');
-  // Note: This is a simplified version; implement real-time listener or pagination as needed
-  // For now, assume a mock fetch; replace with actual query
-  return [];
+  try {
+    const { getDocs } = await import('firebase/firestore');
+    
+    // Get all documents without ordering first
+    const querySnapshot = await getDocs(logsRef);
+    console.log('getActivityLogs - Query snapshot size:', querySnapshot.size);
+    const logs: ActivityLog[] = [];
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      
+      // Handle different timestamp formats
+      let timestamp: Date;
+      if (data.timestamp) {
+        if (typeof data.timestamp.toDate === 'function') {
+          timestamp = data.timestamp.toDate();
+        } else if (data.timestamp instanceof Date) {
+          timestamp = data.timestamp;
+        } else {
+          timestamp = new Date(data.timestamp);
+        }
+      } else {
+        timestamp = new Date();
+      }
+      
+      logs.push({
+        id: doc.id,
+        type: data.type || 'workout',
+        title: data.title || 'Workout',
+        time: data.time || 'Just now',
+        duration: data.duration || '0 min',
+        calories: data.calories || 0,
+        timestamp: timestamp,
+        metadata: data.metadata || {}
+      });
+    });
+    
+    // Sort by timestamp (newest first)
+    logs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    console.log('getActivityLogs - Returning logs:', logs);
+    return logs;
+  } catch (error) {
+    console.error('Error fetching activity logs:', error);
+    return [];
+  }
+};
+
+export const deleteActivityLog = async (userId: string, logId: string) => {
+  console.log('Deleting activity log:', { userId, logId });
+  const logRef = doc(db, 'users', userId, 'activityLogs', logId);
+  await deleteDoc(logRef);
+  console.log('Activity log deleted successfully');
+};
+
+export const deleteAllActivityLogs = async (userId: string) => {
+  console.log('Deleting all activity logs for user:', userId);
+  const logsRef = collection(db, 'users', userId, 'activityLogs');
+  const { getDocs } = await import('firebase/firestore');
+  const querySnapshot = await getDocs(logsRef);
+  
+  const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
+  await Promise.all(deletePromises);
+  console.log('All activity logs deleted successfully');
 };

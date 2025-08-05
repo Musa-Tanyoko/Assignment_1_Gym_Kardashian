@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useTRPCContext } from './TRPCProvider';
 import { useGetUserStats } from '../hooks/useTRPCWorkout';
 import { useGetCurrentUser } from '../hooks/useTRPCAuth';
+import { useActivityLogs } from '../hooks/useActivityLogs';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Progress } from './ui/progress';
@@ -11,16 +12,23 @@ import { Badge } from './ui/badge';
 
 interface StatsPageProps {
   onClose: () => void;
+  userId?: string; // Add optional userId prop
 }
 
-export const StatsPage: React.FC<StatsPageProps> = ({ onClose }) => {
+export const StatsPage: React.FC<StatsPageProps> = ({ onClose, userId }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('week');
   
   // Get current user
   const { data: currentUser } = useGetCurrentUser();
   
+  // Use provided userId or fallback to current user
+  const effectiveUserId = userId || currentUser?.uid || '';
+  
   // Fetch user stats from backend
-  const { data: userStats, isLoading, isError } = useGetUserStats(currentUser?.uid || '');
+  const { data: userStats, isLoading, error } = useGetUserStats(effectiveUserId);
+  
+  // Fetch activity logs for accurate recent activity
+  const { activityLogs, getRecentLogs } = useActivityLogs(effectiveUserId);
 
   // Default stats for new users
   const defaultStats = {
@@ -32,15 +40,94 @@ export const StatsPage: React.FC<StatsPageProps> = ({ onClose }) => {
     monthlyProgress: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   };
 
-  // Use real stats if available, otherwise use defaults
+  // Calculate streak from activity logs
+  const calculateStreak = (logs: any[]) => {
+    if (!logs || logs.length === 0) return 0;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    let streak = 0;
+    let currentDate = new Date(today);
+    
+    // Check consecutive days backwards from today
+    while (true) {
+      const hasWorkoutOnDate = logs.some(log => {
+        const logDate = new Date(log.timestamp);
+        logDate.setHours(0, 0, 0, 0);
+        return logDate.getTime() === currentDate.getTime();
+      });
+      
+      if (hasWorkoutOnDate) {
+        streak++;
+        currentDate.setDate(currentDate.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    
+    return streak;
+  };
+
+  // Calculate stats from activity logs for more accurate data
+  const calculateStatsFromLogs = (logs: any[]) => {
+    if (!logs || logs.length === 0) return defaultStats;
+    
+    const workoutLogs = logs.filter(log => log.type === 'workout');
+    const totalWorkouts = workoutLogs.length;
+    const totalCalories = workoutLogs.reduce((sum, log) => sum + (log.calories || 0), 0);
+    
+    // Calculate average duration
+    const totalDuration = workoutLogs.reduce((sum, log) => {
+      const duration = parseInt(log.duration.split(' ')[0]) || 0;
+      return sum + duration;
+    }, 0);
+    const averageWorkoutDuration = totalWorkouts > 0 ? Math.round(totalDuration / totalWorkouts) : 0;
+    
+    // Calculate weekly progress (last 7 days)
+    const weeklyProgress = [0, 0, 0, 0, 0, 0, 0];
+    const today = new Date();
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+      
+      const workoutsOnDay = logs.filter(log => {
+        const logDate = new Date(log.timestamp);
+        logDate.setHours(0, 0, 0, 0);
+        return logDate.getTime() === date.getTime() && log.type === 'workout';
+      });
+      
+      weeklyProgress[6 - i] = workoutsOnDay.length;
+    }
+    
+    return {
+      totalWorkouts,
+      currentStreak: calculateStreak(logs),
+      totalCalories,
+      averageWorkoutDuration,
+      weeklyProgress,
+      monthlyProgress: userStats?.monthlyProgress || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    };
+  };
+
+  // Use activity logs for primary stats, fallback to backend stats
+  const calculatedStats = calculateStatsFromLogs(activityLogs);
   const stats = userStats ? {
-    totalWorkouts: userStats.sessions || 0,
-    currentStreak: userStats.streak || 0,
-    totalCalories: userStats.totalCalories || 0,
-    averageWorkoutDuration: userStats.averageWorkoutDuration || 0,
-    weeklyProgress: userStats.weeklyProgress || [0, 0, 0, 0, 0, 0, 0],
+    totalWorkouts: Math.max(calculatedStats.totalWorkouts, userStats.sessions || 0),
+    currentStreak: calculatedStats.currentStreak,
+    totalCalories: Math.max(calculatedStats.totalCalories, userStats.totalCalories || 0),
+    averageWorkoutDuration: calculatedStats.averageWorkoutDuration || userStats.averageWorkoutDuration || 0,
+    weeklyProgress: calculatedStats.weeklyProgress,
     monthlyProgress: userStats.monthlyProgress || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  } : defaultStats;
+  } : calculatedStats;
+
+  // Debug logging
+  console.log('StatsPage - effectiveUserId:', effectiveUserId);
+  console.log('StatsPage - activityLogs:', activityLogs);
+  console.log('StatsPage - calculatedStats:', calculatedStats);
+  console.log('StatsPage - userStats:', userStats);
+  console.log('StatsPage - final stats:', stats);
 
   const periods = [
     { id: 'week', name: 'This Week', icon: Calendar },
@@ -141,7 +228,7 @@ export const StatsPage: React.FC<StatsPageProps> = ({ onClose }) => {
   }
 
   // Error state
-  if (isError) {
+  if (error) {
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
@@ -177,6 +264,18 @@ export const StatsPage: React.FC<StatsPageProps> = ({ onClose }) => {
       </motion.div>
     );
   }
+
+  // Debug section for development
+  const debugInfo = process.env.NODE_ENV === 'development' ? (
+    <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+      <h4 className="font-semibold text-yellow-800 mb-2">Debug Info:</h4>
+      <p className="text-sm text-yellow-700">User ID: {effectiveUserId}</p>
+      <p className="text-sm text-yellow-700">Activity Logs Count: {activityLogs.length}</p>
+      <p className="text-sm text-yellow-700">Workout Logs Count: {activityLogs.filter(log => log.type === 'workout').length}</p>
+      <p className="text-sm text-yellow-700">Calculated Total Workouts: {calculatedStats.totalWorkouts}</p>
+      <p className="text-sm text-yellow-700">Backend Total Workouts: {userStats?.sessions || 0}</p>
+    </div>
+  ) : null;
 
   // New user state (no workouts completed)
   if (stats.totalWorkouts === 0) {
@@ -256,6 +355,9 @@ export const StatsPage: React.FC<StatsPageProps> = ({ onClose }) => {
         </CardHeader>
 
         <CardContent>
+          {/* Debug Info */}
+          {debugInfo}
+          
           {/* Period Selector */}
           <motion.div 
             className="flex space-x-2 mb-6"
@@ -329,7 +431,7 @@ export const StatsPage: React.FC<StatsPageProps> = ({ onClose }) => {
           >
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Progress Over Time</h3>
             <div className="flex items-end space-x-2 h-32">
-              {progressData.map((value, index) => (
+              {progressData.map((value: number, index: number) => (
                 <motion.div 
                   key={index} 
                   className="flex-1 flex flex-col items-center"
@@ -366,11 +468,16 @@ export const StatsPage: React.FC<StatsPageProps> = ({ onClose }) => {
           >
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h3>
             <div className="space-y-3">
-              {stats.totalWorkouts > 0 ? (
-                // Show recent workouts if available
-                [1, 2, 3].map((i, index) => (
+              {activityLogs && activityLogs.length > 0 ? (
+                getRecentLogs(5).filter((log, index, self) =>
+                  index === self.findIndex((t) => (
+                    t.title === log.title && 
+                    t.duration === log.duration && 
+                    t.calories === log.calories
+                  ))
+                ).map((log, index) => (
                   <motion.div 
-                    key={i} 
+                    key={log.id} 
                     className="flex items-center p-4 bg-gray-50 rounded-lg"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -382,12 +489,12 @@ export const StatsPage: React.FC<StatsPageProps> = ({ onClose }) => {
                       animate={{ scale: [1, 1.2, 1] }}
                       transition={{ duration: 2, repeat: Infinity, delay: index * 0.5 }}
                     />
-                                         <div className="flex-1">
-                       <p className="font-medium text-gray-800">Workout #{stats.totalWorkouts - i + 1}</p>
-                       <p className="text-sm text-gray-600">{stats.averageWorkoutDuration} minutes • {stats.totalWorkouts > 0 ? Math.round(stats.totalCalories / stats.totalWorkouts) : 0} calories</p>
-                     </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-800">{log.title}</p>
+                      <p className="text-sm text-gray-600">{log.duration} • {log.calories} calories</p>
+                    </div>
                     <Badge variant="outline" className="text-sm">
-                      {i} day{i > 1 ? 's' : ''} ago
+                      {log.time}
                     </Badge>
                   </motion.div>
                 ))
