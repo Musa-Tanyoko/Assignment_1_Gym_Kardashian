@@ -1,28 +1,26 @@
 TECHNICAL DESIGN DOCUMENT TEMPLATE
 
 Fitness App
-A fitness tracking app that enables a user to receive exercise suggestions and track their progress, and receive rewards for attaining milestones. The user can create a pet which requires resources to stay alive.
+A fitness tracking app that enables a user to receive exercise suggestions and track their progress
 
-Fitness-tracker-giga pet app
+Fitness-tracker
 
 1. OVERVIEW
 
 - Goal:
 
 * Tailor made fitness suggestion
-* Motivating users through responsibilities and rewards
-* making exercise fun.
+* Motivating users 
+
 
 - Key features:
 
 * exercise calculator based on the users needs and wants, BMI, body fat Index. This info is used to suggest exercises and number of sessions per week.
-* rewards tracking system based on users frequency and completion
-* lack of exercise means lack of credit to buy items that keep their pet alive hence could lead to loss of life for their pet
+
 
 - Target users & success criteria:
 
 * people looking to get fit, tailor make exercises for users based on their bio data, BMI, body fat index. Success is measured by session completion and weight loss.
-* keeping their pet alive to adulthood where it multiplies offspring so a user has more credits to attain
 
 ---
 

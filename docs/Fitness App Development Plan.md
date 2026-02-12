@@ -10,7 +10,7 @@ lint-staged on pre-commit.
 • 1.4 Environment Setup: Configure environment variables using T3 Env for typesafe validation , and set up the local development environment to use Firebase emulators.
 Milestone 2: Core Data Models and User Flow
 This milestone is about implementing the fundamental data structures and the user's initial interaction with the app.
-• 2.1 User Data: Implement the User data model in Firestore, including fields like uid, first name, last name, email, role, age, weight, and fitness goal. The data will be used to tailor a workout regimen for the user.git remote add origin https://github.com/your-username/your-repo-name.git
+• 2.1 User Data: Implement the User data model in Firestore, including fields like uid, first name, last name, email, role, age, weight, and fitness goal. The data will be used to tailor a workout regimen for the user
 • 2.2 Authentication: Set up user authentication using Firebase Auth.
 • 2.3 Pet Creation: Create the functionality for a user to create a digital pet, such as a cat, dog, fish, or bird.
 • 2.4 Pet Health System: Implement the data model and logic for the pet's health bars (hungry, hygiene, happiness) which deplete daily.
@@ -35,3 +35,179 @@ This final milestone prepares the app for launch and ongoing maintenance.
 main.
 • 5.3 Monitoring & Logging: Set up Firebase Crashlytics or Sentry for frontend runtime error capture , and Google Cloud Logging for structured backend server logs.
 • 5.4 Performance Tuning: Apply performance optimizations such as denormalizing Firestore data to avoid "hot document" writes and tuning TanStack Query caching.
+
+
+
+. TECH STACK (GOLDEN PATH)
+
+Runtime:                Node (Firebase Cloud Functions)
+Language:               TypeScript (strict)
+Front‑end:              React + Vite
+UI kit:                 shadcn/ui (Radix + Tailwind source‑copy model)
+Styling:                Tailwind CSS (design‑token file)
+State / data fetching:  TanStack Query
+Forms & validation:     React Hook Form + Zod resolver
+Shared validation:      Zod (client & server)
+API layer:              Http
+Backend services:       Firebase Auth · Firestore · Firestore rules
+Package manager / mono: PNPM workspaces
+Build orchestration:    Turborepo (remote caching)
+Component workshop:     Storybook (UI in isolation)
+Unit / component tests: Vitest + Testing Library
+Visual / interaction:   Storybook + @storybook/testing‑library
+End‑to‑end tests:       Playwright
+Linting:                ESLint (typescript‑eslint) + eslint‑plugin‑perfectionist
+Formatting:             Prettier
+Type‑safe env vars:     T3 Env (Zod‑validated)
+Versioning / publishing: Changesets (monorepo changelogs & releases)
+CI / CD:                GitHub Actions (Turbo‑aware pipeline; see §8)
+
+---
+
+3. MONOREPO LAYOUT (PNPM)
+
+.
+├── apps/
+│   └── web/            ← React front‑end (+ .storybook)
+├── packages/
+│   ├── shared/         ← Zod schemas, utilities, common types
+│   └── seeding/        ← Data‑seeding helpers (Firestore emulator/Admin SDK)
+├── docs/               ← Project docs (this TDD, ADRs, API notes)
+└── .github/            ← CI workflows
+
+---
+
+4. ARCHITECTURE
+   Client (React + TanStack Query) ⇄ HTTPS endpoints
+   tRPC handlers read/write Firestore documents and interact with Storage.
+
+<!-- Replace or link to a diagram if useful. -->
+
+---
+
+5. DATA MODEL
+
+| Entity | Key fields          | Notes             |
+| ------ | ------------------- | ----------------- |
+| User   | uid, email, role, … | Auth via Firebase |
+| \[…]   | …                   | …                 |
+
+* Security rules: \[plan or link]
+* Index strategy: \[composite indexes]
+
+---
+
+6. API DESIGN
+
+| Router | Procedure | Input (Zod schema) | Output |
+| ------ | --------- | ------------------ | ------ |
+| user   | getById   | uid                | User   |
+| \[…]   | …         | …                  | …      |
+
+Error‑handling conventions: \[auth errors, validation errors, etc.]
+
+---
+
+7. TESTING STRATEGY
+
+| Level / focus        | Toolset                                | Scope                      |
+| -------------------- | -------------------------------------- | -------------------------- |
+| Unit                 | Vitest                                 | Pure functions, hooks      |
+| Component            | Vitest + Testing Library               | React components           |
+| Visual / interaction | Storybook + @storybook/testing‑library | UI snapshots, interactions |
+| End‑to‑end           | Playwright                             | Auth flows, happy paths    |
+
+* Coverage target: \[e.g., 80 % statements]
+* Fixtures / seeding: `pnpm seed` → runs scripts in `packages/seeding` against the Firebase emulator.
+
+---
+
+8. CI / CD PIPELINE (GITHUB ACTIONS)
+
+9. Setup PNPM and restore Turbo remote cache
+
+10. `pnpm exec turbo run lint typecheck` – ESLint & `tsc --noEmit`
+
+11. `pnpm exec turbo run test` – Vitest (Turbo skips untouched packages)
+
+12. `pnpm exec turbo run build-storybook` – generates static Storybook
+
+13. `pnpm exec turbo run e2e` – Playwright suite (headless)
+
+14. Deploy preview (Firebase Hosting channel + optional Storybook host)
+
+15. Changesets release & promote to prod on merge to `main`
+
+---
+
+9. ENVIRONMENTS & SECRETS
+
+| Env        | URL / target                                       | Notes                                          |
+| ---------- | -------------------------------------------------- | ---------------------------------------------- |
+| local      | localhost:5173                                     | .env + Firebase emulators; validated by T3 Env |
+| preview-\* | Firebase Hosting channel                           | Auto‑created per PR                            |
+| prod       | [https://app.example.com](https://app.example.com) | Promote via CI workflow                        |
+
+Secrets handled with `firebase functions:config:set` and GitHub repo secrets.
+
+---
+
+10. PERFORMANCE & SCALABILITY
+
+* Denormalize Firestore data to avoid hot‑document writes.
+* Tune TanStack Query caching (`staleTime`, prefetch patterns).
+* Code‑split via Vite dynamic imports.
+
+---
+
+11. MONITORING & LOGGING
+
+| Concern        | Tool                          | Notes                   |
+| -------------- | ----------------------------- | ----------------------- |
+| Runtime errors | Firebase Crashlytics / Sentry | Front‑end error capture |
+| Server logs    | Google Cloud Logging          | Structured JSON logs    |
+| Analytics      | GA4 or PostHog                | Track funnels & usage   |
+
+---
+
+12. ACCESSIBILITY & I18N
+
+* shadcn/ui components use Radix primitives (focus, ARIA).
+* Storybook a11y addon for quick audits.
+* WCAG 2.1 AA checklist (contrast, keyboard nav).
+* i18n plan: \[react‑intl, language switcher, etc.]
+
+---
+
+13. CODE QUALITY & FORMATTING
+
+* Prettier formats on save / commit.
+* ESLint governs rules; perfectionist plug‑in auto‑sorts imports and object keys.
+* Husky pre‑commit hook runs `lint-staged`.
+
+---
+
+14. OPEN QUESTIONS / RISKS
+
+| Item                     | Owner | Resolution date |
+| ------------------------ | ----- | --------------- |
+| \[e.g., Payment gateway] | —     | —               |
+| \[…]                     |       |                 |
+
+---
+
+15. APPENDICES
+
+* Setup script: `pnpm exec turbo run setup`
+* Branching model: Conventional commits + Changesets for versioning.
+* Links: product spec, Figma, Storybook URL, ADR index, etc.
+
+---
+
+Last updated: \[YYYY‑MM‑DD]
+
+---
+
+**End of template** – copy into `docs/technical-design-doc.md` and customize.
+
+

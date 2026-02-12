@@ -1,3 +1,4 @@
+// Authentication hooks using Firebase and TRPC
 import { useTRPCContext } from '../components/TRPCProvider';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { app } from '../lib/firebase';
@@ -49,6 +50,20 @@ export const useGetCurrentUser = () => {
       uid: auth.currentUser.uid, 
       email: auth.currentUser.email || '' 
     } : null,
+    isLoading: false,
+    error: null,
+  };
+};
+
+export const useUpdateUser = () => {
+  const trpcContext = useTRPCContext();
+  
+  return {
+    mutateAsync: async (input: { uid: string; updates: Record<string, any> }) => {
+      // Use the TRPC client to update user
+      const result = await trpcContext.user.updateUser.mutate(input);
+      return result;
+    },
     isLoading: false,
     error: null,
   };
